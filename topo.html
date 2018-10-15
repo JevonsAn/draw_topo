@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>自治域拓扑图</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="static/bootstrap.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row" style="margin-top: 15px;">
+            <div class="col-md-2"  style="margin-left: 50px;">
+                <input type="text" class="form-control" id="searchIp" style="margin-left: 30px;" placeholder="请输入自治域号">
+            </div>
+            <div class="col-md-2" style="margin-left: 10px;">
+                <button id="searchBt" class="btn btn-info">
+                    搜索
+                </button>
+            </div>
+
+            <div class="col-md-1 col-md-offset-5"  style="padding-left: 50px;">
+                <button id="lineBt" class="btn btn-default">
+                    显示城市定位线
+                </button>
+            </div>
+
+        </div>
+        <!--<p style="color: red;font-size: 20px;">try</p>-->
+        <div class="row">
+            <div id="fixedLayer" style="position:fixed;top: 70px;background-color:rgba(256,256,256,0.7);"> <!--opacity:0.7;left: 40px;-->
+                <svg id="fix" width="1450" height="76">
+
+                </svg>
+            </div>
+            <svg id="topo" width="1450" height="7000">
+
+            </svg>
+        </div>
+    </div>
+</body>
+<style>
+    .word {
+        text-shadow: 1px 0 0 #EEE, 0 1px 0 #EEE,
+        0 -1px 0 #EEE, -1px 0 0 #EEE,
+        1px 0 1px #EEE, 0 1px 1px #EEE,
+        0 -1px 1px #EEE, -1px 0 1px #EEE;
+    }
+    @-webkit-keyframes twinkling{ /*透明度由0到1*/
+        0%{
+            opacity:0; /*透明度为0*/
+        }
+        100%{
+            opacity:1; /*透明度为1*/
+        }
+    }
+    .twink {
+        -webkit-animation: twinkling 1s infinite ease-in-out;
+    }
+</style>
+<script src="static/jquery-3.3.1.min.js"></script>
+<script src="static/bootstrap.js"></script>
+<script src="static/d3.js"></script>
+<script src="static/d3-selection-multi.v1.js"></script>
+<script>
+    window.onscroll = function(){
+        var t = document.documentElement.scrollTop || document.body.scrollTop;
+        var top_div = document.getElementById("fix");
+        if(t >= 100){
+            top_div.style = "position:fixed;top:10px;background-color:rgba(256,256,256,0.7);";
+        }
+        else{
+            top_div.style = "position:fixed;top:70px;background-color:rgba(256,256,256,0);";
+        }
+    }
+</script>
+<script>
+	let svg = d3.select("svg#topo");
+	let fsvg = d3.select("svg#fix");
+	let x = d3.scaleOrdinal().range({{x_list}});
+	let xScale = x.domain({% raw x_domain%});
+
+	// x轴
+	let xAxis = fsvg.append('g')
+				   .attr('class', 'xAxisis')
+				   .attr('transform', `translate(0, 75)`)
+				   .call(d3.axisTop(xScale))
+		            .append("text")//添加坐标轴说明
+					.text("经度")
+					.attr("transform","translate(1350,0)")
+					.attr("fill","#000")
+					.attr("font-size", "20px")
+					.attr("dy","0em");
+
+	let x2 = d3.scaleOrdinal().range({{x_list2}});
+	let xScale2 = x2.domain({% raw x_domain2%});
+
+	// x轴
+	let xAxis2 = fsvg.append('g')
+				   .attr('class', 'xAxisis')
+				   .attr('transform', `translate(0, 50)`)
+				   .call(d3.axisTop(xScale2));
+                    // .append("text")//添加坐标轴说明
+					// .text("经度")
+					// .attr("transform","translate(1350,0)")
+					// .attr("fill","#000")
+					// .attr("font-size", "20px")
+					// .attr("dy","0em");
+	let ticks = xAxis2.selectAll("g.tick");
+	let dArray = [];
+	for (let i=0;i<ticks._groups[0].length;i++ ){
+	 	dArray.push(ticks._groups[0][i].textContent);
+	}
+
+	ticks.data(dArray)
+		.attr("id", d => d);
+
+	let xyt = fsvg.select("g#西雅图");
+	xyt.select("line").attr("y2", "-20");
+	xyt.select("text").attr("y", "-25");
+
+	let jjs = fsvg.select("g#旧金山");
+	jjs.select("line").attr("y2", "-20");
+	jjs.select("text").attr("y", "-40");
+
+	let nw = fsvg.select("g#纽约");
+	nw.select("line").attr("y2", "-20");
+	nw.select("text").attr("y", "-25");
+
+	let lsj = fsvg.select("g#洛杉矶");
+	lsj.select("text").html("&nbsp;&nbsp;&nbsp;洛杉矶");
+
+	let yhc = fsvg.select("g#盐湖城");
+	yhc.select("text").html("&nbsp;&nbsp;&nbsp;盐湖城");
+
+	let sh = fsvg.select("g#上海");
+	sh.append("text").attr("fill", "#000").attr("y", "-20").attr("dy", "0em").html("台北");
+	let amstd = fsvg.select("g#阿姆斯特丹");
+	amstd.select("text").attr("y", "-25");
+	amstd.select("line").attr("y2", "-22");
+	amstd.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("布鲁塞尔(比利时)");
+
+	let xg = fsvg.select("g#香港");
+	xg.select("text").attr("y", "-25");
+	xg.select("line").attr("y2", "-22");
+	xg.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("武汉");
+
+	let xdl = fsvg.select("g#新德里");
+	xdl.select("line").attr("y2", "-20");
+	xdl.select("text").attr("y", "-25");
+
+	let y = d3.scaleOrdinal().range([0,6000]);
+	let yScale = y.domain(["", ""]);
+
+	// y轴
+	let yAxis = d3.axisLeft(yScale);
+	yAxis.tickValues();
+	yAxis.tickSize(2, 5);
+	yAxis.tickPadding(5);
+	svg.append('g')
+	   .attr('class', 'yAxisis')
+	   .attr('transform', `translate(99, 100)`)
+	   .call(yAxis);
+
+
+	d3.json("json", function(error, graph) {
+        if (error) throw error;
+
+        // console.log(graph);
+        // Tier1自治域
+        let node = svg.selectAll(".tier1_rects")
+                  .data(graph.rects)
+                .enter().append("g")
+                  .attr("class", "tier1_rects")
+                  .attr("id",function (d) {
+                    return "tier1_rects"+d.asn;
+                  });
+
+        node.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("stroke-width","0px")
+            .attr("fill", d => d.color)
+            .attr("id", d => `as${d.asn}`)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height)
+            .on("click",function(d) {
+
+            });
+            // .call(d3.drag()
+            //     .on("start", dragstarted)
+            //     .on("drag", dragged)
+            //     .on("end", dragended));
+
+        //鼠标悬停文字
+        node.append("title")
+            .text(d => `自治域号：${d.asn}
+                        自治域名称：${d.name.split(',')[1]}
+                        所在国家：${d.name.split(',')[2]}
+                        customer数量：${d.scale}`);
+
+        //Tier1的位置信息竖条
+        let node2 = svg.append("g")
+                        .selectAll(".tier1_lgts")
+                      .data(graph.lgts)
+                    .enter().append("g")
+                      .attr("class", "tier1_lgts");
+
+        node2.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("stroke-width","0px")
+            .attr("fill", d => d.color)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height);
+
+        node2.append("title")
+            .text(d => `${d.lgt}`);
+
+
+        // Tier2矩形
+        let tier2_node = svg.selectAll(".tier2_rects")
+                      .data(graph.rect2s)
+                    .enter().append("g")
+                      .attr("class", "tier2_rects")
+                      .attr("id",function (d) {
+                        return "tier2_rects"+d.asn;
+                      });
+        // console.log(graph.rect2s[0]);
+        tier2_node.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("id", d => `as${d.asn}`)
+            .attr("stroke-width","0px")
+            .attr("fill", d => d.color)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height)
+            .on("click",function(d) {
+
+            });
+            // .call(d3.drag()
+            //     .on("start", dragstarted)
+            //     .on("drag", dragged)
+            //     .on("end", dragended));
+
+        tier2_node.append("title")
+            .text(d => `自治域号：${d.asn}
+                        自治域名称：${d.name.split(',')[1]}
+                        所在国家：${d.name.split(',')[2]}
+                        customer数量：${d.scale}`);
+
+        //所有其他自治域的小点
+        let dots = svg.append("g").selectAll(".leaf_dot")
+                    .data(graph.dots)
+                    .enter()
+                    .append("g");
+
+        dots.append("circle")
+            .attr("cx", d => d.xp)
+            .attr("cy", d => d.yp)
+            .attr("r", 2)
+            .attr("id", d => `as${d.other.split("|")[0]}`)
+            .attr("fill", d => d.color)
+            .on("mouseover", function () {
+                    d3.select(this).attr("r", 5).attr("fill", "red");
+                }
+            )
+            .on("mouseout", function (d) {
+                    d3.select(this).attr("r", 2).attr("fill", d => d.color);
+                }
+            );
+
+        dots.append("title")
+            .text(function (d) {
+                let sp = d.other.split("|"); // asn, name, cnt, lgt, path
+                return `自治域号：${sp[0]}
+                        所在国家：${sp[2]}
+                        自治域名称：${sp[1]}
+                        经度：${sp[3]}
+                        ASpath：${sp[4]}`;
+            });
+
+        // Tier1矩形上的文字
+        let text1 = svg.selectAll(".tier1_texts")
+                      .data(graph.rects)
+                    .enter().append("g")
+                      .attr("class", "tier1_texts")
+                      .attr("id",function (d) {
+                        return "tier1_texts"+d.asn;
+                      });
+        text1.append("text")
+                // .attr("dx", 0)
+                // .attr("dy", ".35em")
+                .attr("x", d => d.xp + d.width/2)
+                .attr("y", d => d.yp + 4 + d.height/2)
+                .attr("style","background-color:white;opacity:1;")
+                .style("text-anchor", "middle")
+                .attr("class", "word")
+                .style("fill", "#000")
+                .style("font-family", "Arial")
+                .style("font-size", d => d.height * 0.7)
+                .text(function (d) {
+                    if (d.width < 25){
+                        return "";
+                    }else {
+                        return `${d.asn},${d.name.split(',')[1].split(' ')[1]},${d.name.split(',')[2]}`;
+                    }
+                });
+
+        // Tier2矩形上的文字
+        let text2 = svg.selectAll(".tier2_texts")
+                      .data(graph.rect2s)
+                    .enter().append("g")
+                      .attr("class", "tier2_texts")
+                      .attr("id",function (d) {
+                        return "tier2_texts"+d.asn;
+                      });
+        text2.append("text")
+                // .attr("dx", 0)
+                // .attr("dy", ".35em")
+                .attr("x", d => d.xp + d.width/2)
+                .attr("y", d => d.yp + 4 + d.height/2)
+                .attr("style","background-color:white;opacity:1;")
+                .style("text-anchor", "middle")
+                .attr("class", "word")
+                .style("fill", "#000")
+                .style("font-family", "Arial")
+                .style("font-size", d => d.height * 0.9)
+                .text(function (d) {
+                    if (d.width < 25){
+                        return "";
+                    }else {
+                        return d.asn;
+                    }
+                });
+
+
+        // 城市定位线
+        let link = svg.selectAll(".link")
+                      .data(graph.lines)
+                    .enter().append("g")
+                      .attr("class", "link");
+        link.append("line")
+                .attr("x1", d => d.xp)
+                .attr("y1", 50)
+                .attr("x2", d => d.xp)
+                .attr("y2", 5000)
+                .attr("style","background-color:white;opacity:0;")
+                .attr("stroke-dasharray", "2 2")
+                .attr("stroke", "#444")
+                .attr("stroke-width", "1px");
+
+    });
+
+</script>
+<script>
+	let btFlag = 1;
+	$("#lineBt").click(function (){
+		let lines = d3.selectAll("g.link").selectAll("line");
+		if (btFlag === 0){
+			lines.style("opacity", 0);
+			btFlag = 1;
+			$("#lineBt").html("显示城市定位线");
+		}
+		else {
+		    lines.style("opacity", 10);
+			btFlag = 0;
+			$("#lineBt").html("隐藏城市定位线");
+		}
+    });
+
+	let last = undefined;
+    $("#searchBt").click(function () {
+        let asn = $("#searchIp").val();
+        let target = undefined;
+        if (last){
+            last.remove();
+        }
+        target = $(`#as${asn}`);
+        console.log(target.length);
+        if (target.length){
+            if (target[0].tagName === 'rect'){
+                last = svg.append("rect")
+                    .attr("x", target.attr("x") - 6)
+                    .attr("y", target.attr("y") - 5)
+                    .attr("width", parseFloat(target.attr("width")) + 12)
+                    .attr("height", parseFloat(target.attr("height")) + 10)
+                    .attr("stroke", "red")
+                    .attr("class", "twink")
+                    .attr("fill", "none")
+                    .attr("stroke-width", "2px");
+            }
+            else if (target[0].tagName === 'circle'){
+                last = svg.append("circle")
+                    .attr("cx", target.attr("cx"))
+                    .attr("cy", target.attr("cy"))
+                    .attr("r", parseFloat(target.attr("r")) + 6)
+                    .attr("stroke", "red")
+                    .attr("fill", "none")
+                    .attr("class", "twink")
+                    .attr("stroke-width", "2px");
+            }
+        }
+        else{
+            alert("未查询到该自治域!");
+        }
+
+    });
+</script>
+</html>
