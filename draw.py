@@ -10,7 +10,7 @@ from info import tier1_asns, citys, tier2_asns, asn_leafs
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
-x_scale = [3, 3, 10, 10, 5, 6, 9, 4, 4, 4, 4, 3]
+x_scale = [1, 1, 10, 10, 5, 6, 9, 4, 4, 4, 4, 3]
 x_width = [x / sum(x_scale) * 1200 for x in x_scale]
 x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
 p_list = [-180, -150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
@@ -83,7 +83,7 @@ def calc_posi(lgt):
 
 def Interval_Merge(itv_list, jiange):
     result_list = []
-    sub_list = [sorted(itv_list[x: x + jiange], key=lambda As: As['lgt']) for x in range(0, len(itv_list), jiange)]
+    sub_list = [sorted(itv_list[x: x + jiange], key=lambda As: As['rect']) for x in range(0, len(itv_list), jiange)]
     # print(sub_list)
     for l in sub_list:
         slist = []
@@ -91,7 +91,7 @@ def Interval_Merge(itv_list, jiange):
         for i, x in enumerate(l):
             for j, y in enumerate(l[i:]):
                 if lset[i + j]:
-                    if not slist or slist[-1]['lgt'][-1] <= y['lgt'][0]:
+                    if not slist or slist[-1]['rect'][-1] <= y['rect'][0]:
                         slist.append(y)
                         lset[i + j] = 0
             if slist:
@@ -106,8 +106,12 @@ def rect_posi(tier2_asns, jiange):
     # lines = []
     dots = []
     tier2_rects = []
+    yax_key = [0]
+    yax_value = [0]
+
 
     thigh = 100
+    nnn = 0
     # print([t['scale'] for t in asns])
     # tier1_asns.sort(key=lambda As: int(As['scale']), reverse=True)
     # print(tier1_asns)
@@ -122,6 +126,10 @@ def rect_posi(tier2_asns, jiange):
             "name": f'{asn["asn"]}, {asn["name"]}, {asn["country"]}',
             "scale": asn["scale"]
         }
+        nnn += 1
+        yax_key.append(thigh + high - 100)
+        yax_value.append(nnn)
+
         a["color"], dark_color = rand_color()
         thigh += high
         for rx in asn["rects"]:
@@ -140,9 +148,10 @@ def rect_posi(tier2_asns, jiange):
             dots.append({"xp": "%.1f" % pl, "yp": thigh - 1.5, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
 
     # # print(rects, dots)
-    thigh += 30
+    # thigh += 30
     tier2_asns = Interval_Merge(tier2_asns, jiange)
     dasns = set()
+
     for line in tier2_asns:
         high = 12
         for asn in line:
@@ -157,22 +166,39 @@ def rect_posi(tier2_asns, jiange):
             # a["color"], dark_color = rand_color()
             dark_color = asn["dark_color"]
             # print(len(asn["rects"]))
-            # b = {x: y for x, y in a.items()}
-            a["xp"] = calc_posi(asn["lgt"][0])
-            a["width"] = calc_posi(asn["lgt"][1]) - a["xp"]
-            tier2_rects.append(a)
+            b = {x: y for x, y in a.items()}
+            b["xp"] = calc_posi(asn["rect"][0])
+            b["width"] = calc_posi(asn["rect"][-1]) - b["xp"]
+            tier2_rects.append(b)
 
-            if a["asn"] not in dasns:
-                # print(a["asn"])
-                for l in asn_leafs.get(a["asn"], []):
-                    pl = calc_posi(l[0])
-                    dots.append(
-                        {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
-                dasns.add(a["asn"])
+            lgts = asn["rect"]
+            print(lgts)
+            for l in lgts:
+                lgtss.append({"xp": calc_posi(l), "yp": a["yp"], "width": 2,
+                              "color": dark_color, "height": a["height"] - 3, "lgt": l})
+
+            if asn["max"]:
+                for x in asn["little"]:  # 画同自治域的小矩形
+                    b = {x: y for x, y in a.items()}
+                    b["xp"] = calc_posi(x - 2)
+                    b["width"] = calc_posi(x + 2) - b["xp"]   # 小矩形宽4
+                    tier2_rects.append(b)
+
+                if a["asn"] not in dasns:
+                    # print(a["asn"])
+                    for l in asn_leafs.get(a["asn"], []):
+                        pl = calc_posi(l[0])
+                        dots.append(
+                            {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
+                    dasns.add(a["asn"])
         thigh += high
+        nnn += 1
+        if nnn % 5 == 0:
+            yax_key.append(thigh - 100)
+            yax_value.append(nnn)
 
     # print(len(tier2_rects))
-    return rects, lgtss, tier2_rects, dots
+    return rects, lgtss, tier2_rects, dots, yax_key, yax_value
 
 
 arg = {"group": 85}
@@ -199,9 +225,10 @@ class JsonHandler(tornado.web.RequestHandler):
 
     def get(self):
         # print(lines)
-        rects, lgts, tier2_rects, dots = rect_posi(tier2_asns, arg["group"])
+        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier2_asns, arg["group"])
         # print(tier2_rects[:20])
-        self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots}))
+        # print(yax_key, yax_value)
+        self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots, "yax": [yax_key, yax_value]}))
 
 
 if __name__ == "__main__":

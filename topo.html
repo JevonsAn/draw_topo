@@ -31,7 +31,7 @@
 
                 </svg>
             </div>
-            <svg id="topo" width="1450" height="7000">
+            <svg id="topo" width="1450" height="4000">
 
             </svg>
         </div>
@@ -147,22 +147,23 @@
 	xdl.select("line").attr("y2", "-20");
 	xdl.select("text").attr("y", "-25");
 
-	let y = d3.scaleOrdinal().range([0,6000]);
-	let yScale = y.domain(["", ""]);
-
-	// y轴
-	let yAxis = d3.axisLeft(yScale);
-	yAxis.tickValues();
-	yAxis.tickSize(2, 5);
-	yAxis.tickPadding(5);
-	svg.append('g')
-	   .attr('class', 'yAxisis')
-	   .attr('transform', `translate(99, 100)`)
-	   .call(yAxis);
-
 
 	d3.json("json", function(error, graph) {
+
         if (error) throw error;
+
+        let y = d3.scaleOrdinal().range(graph.yax[0]);
+        let yScale = y.domain(graph.yax[1]);
+
+        // y轴
+        let yAxis = d3.axisLeft(yScale);
+        yAxis.tickValues();
+        yAxis.tickSize(2, 5);
+        yAxis.tickPadding(5);
+        svg.append('g')
+           .attr('class', 'yAxisis')
+           .attr('transform', `translate(99, 100)`)
+           .call(yAxis);
 
         // console.log(graph);
         // Tier1自治域
@@ -198,26 +199,6 @@
                         所在国家：${d.name.split(',')[2]}
                         customer数量：${d.scale}`);
 
-        //Tier1的位置信息竖条
-        let node2 = svg.append("g")
-                        .selectAll(".tier1_lgts")
-                      .data(graph.lgts)
-                    .enter().append("g")
-                      .attr("class", "tier1_lgts");
-
-        node2.append("rect")
-            .attr("stroke", d => d.color)
-            .attr("stroke-width","0px")
-            .attr("fill", d => d.color)
-            .attr("x", d => d.xp)
-            .attr("y", d => d.yp)
-            .attr("width", d => d.width)
-            .attr("height", d => d.height);
-
-        node2.append("title")
-            .text(d => `${d.lgt}`);
-
-
         // Tier2矩形
         let tier2_node = svg.selectAll(".tier2_rects")
                       .data(graph.rect2s)
@@ -249,6 +230,25 @@
                         自治域名称：${d.name.split(',')[1]}
                         所在国家：${d.name.split(',')[2]}
                         customer数量：${d.scale}`);
+
+        //Tier1和Tier2的位置信息竖条
+        let node2 = svg.append("g")
+                        .selectAll(".tier1_lgts")
+                      .data(graph.lgts)
+                    .enter().append("g")
+                      .attr("class", "tier1_lgts");
+
+        node2.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("stroke-width","0px")
+            .attr("fill", d => d.color)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height);
+
+        node2.append("title")
+            .text(d => `${d.lgt}`);
 
         //所有其他自治域的小点
         let dots = svg.append("g").selectAll(".leaf_dot")

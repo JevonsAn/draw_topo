@@ -1,7 +1,7 @@
 import math
 import random
 
-jiange = 50
+jiange = 50  # 空白多少用来分割大矩形
 
 
 def rand_color():
@@ -63,11 +63,11 @@ def calc_width(l, jiange):
             max_index = i + 1
     this = l[len(l) - 1]
     next = l[0]
-    if this * next < 0:
-        wid = 180 - this + next + 180
-        if wid > max_wid:
-            max_wid = wid
-            max_index = 0
+    # if this * next < 0:
+    wid = 180 - this + next + 180
+    if wid > max_wid:
+        max_wid = wid
+        max_index = 0
     indexs = []
     indexs.append(max_index)
     for i in range(0, len(l) - 1):
@@ -82,7 +82,7 @@ def calc_width(l, jiange):
         if wid > jiange:
             indexs.append(bi)
 
-    rects = [(l[x], l[(indexs[i + 1]) % len(l) - 1]) for i, x in enumerate(indexs[:-1])] + [(l[indexs[-1]], l[indexs[0] - 1],)]
+    rects = [(l[x], l[(indexs[i + 1]) - 1]) for i, x in enumerate(indexs[:-1])] + [(l[indexs[-1]], l[indexs[0] - 1],)]  # % len(l)
     new_rects = []
     for i, r in enumerate(rects):
         if r[0] == r[1]:
@@ -93,6 +93,85 @@ def calc_width(l, jiange):
             new_rects.append((-180, r[1]))
         else:
             new_rects.append(r)
+    return new_rects
+
+
+def calc_width22(l, jiange):
+    # 寻找差别最大点作为起点
+    max_wid = 0
+    max_index = 0
+    for i in range(len(l) - 1):
+        this = l[i]
+        next = l[i + 1]
+        wid = next - this
+        if wid > max_wid:
+            max_wid = wid
+            max_index = i + 1
+    this = l[len(l) - 1]
+    next = l[0]
+    # if this * next < 0:
+    wid = 180 - this + next + 180
+    if wid > max_wid:
+        max_wid = wid
+        max_index = 0
+    # print(l, max_index, max_wid)
+
+    # 根据间隔分成小区间
+    rects = []
+    sub = [l[max_index]]
+    for i in range(0, len(l) - 1):
+        ai = (max_index + i) % len(l)
+        bi = (max_index + i + 1) % len(l)
+        this = l[ai]
+        next = l[bi]
+        if bi == 0:
+            wid = 180 - this + next + 180
+        else:
+            wid = next - this
+        if wid > jiange:
+            rects.append(sub)
+            sub = [l[bi]]
+        else:
+            sub.append(l[bi])
+    rects.append(sub)
+    # print(rects)
+
+    # 整理最大区间、筛出小区间
+    new_rects = []
+    little = []
+    max_len = 1
+    max_index = 0
+    for i, r in enumerate(rects):
+        if len(r) == 1:
+            # new_rects.append((r[0] - 3, r[0] + 3))
+            little.append(r[0])
+        elif r[0] > r[-1]:
+            positive = []
+            negative = [-180]
+            for x in r:
+                if x >= 0:
+                    positive.append(x)
+                else:
+                    negative.append(x)
+            positive.append(180)
+            new_rects.append({"rect": positive, "max": False})
+            if len(positive) > max_len:
+                max_len = len(positive)
+                max_index = len(new_rects) - 1
+            new_rects.append({"rect": negative, "max": False})
+            if len(negative) > max_len:
+                max_len = len(negative)
+                max_index = len(new_rects) - 1
+        else:
+            new_rects.append({"rect": r, "max": False})
+            if len(r) > max_len:
+                max_len = len(r)
+                max_index = len(new_rects) - 1
+    # print(new_rects, max_index, max_len)
+    if len(new_rects) == 0:
+        new_rects.append({"rect": [0, 0], "max": False})
+    new_rects[max_index]["max"] = True
+    new_rects[max_index]["little"] = little
     return new_rects
 
 
@@ -122,25 +201,6 @@ with open("static/tier1_info.txt") as f:
             tier1_asns.append(As)
 
 
-def Interval_Merge(itv_list, jiange):
-    result_list = []
-    sub_list = [sorted(itv_list[x: x + jiange], key=lambda As: As['lgt']) for x in range(0, len(itv_list), jiange)]
-    # print(sub_list)
-    for l in sub_list:
-        slist = []
-        lset = [1] * len(l)
-        for i, x in enumerate(l):
-            for j, y in enumerate(l[i:]):
-                if lset[i + j]:
-                    if not slist or slist[-1]['lgt'][-1] <= y['lgt'][0]:
-                        slist.append(y)
-                        lset[i + j] = 0
-            if slist:
-                result_list.append(slist)
-            slist = []
-    return result_list
-
-
 tier2_asns = []
 with open("static/tier2_info.txt") as f:
     for line in f.readlines():
@@ -151,10 +211,14 @@ with open("static/tier2_info.txt") as f:
             As["posis"] = eval(As["posis"])
             As["color"], As["dark_color"] = rand_color()
 
-            rects = calc_width(As["posis"], jiange)
+            # print(As)
+            rects = calc_width22(As["posis"],  50)  # 在这里把矩形分成小矩形 As["posis"], jiange
+
+            # rects变了，此处要修改
+
             for rx in rects:
-                b = {x: y for x, y in As.items()}
-                b["lgt"] = (rx[0], rx[1])
+                b = {x: y for x, y in As.items() if x != "posis"}
+                b.update(rx)
                 tier2_asns.append(b)
 # for line in tier2_asns:
 #     print([y["lgt"] for y in line])
