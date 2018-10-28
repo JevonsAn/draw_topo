@@ -5,12 +5,12 @@ import random
 import math
 import json
 
-from info import tier1_asns, citys, tier2_asns, asn_leafs
+from info import citys, get_info
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
-x_scale = [1, 1, 10, 10, 5, 6, 9, 4, 4, 4, 4, 3]
+x_scale = [1, 1, 10, 10, 5, 6, 9, 4, 4, 4, 4, 3] # [3,3,3,3,3,3,3,3,3,3,3,3] #
 x_width = [x / sum(x_scale) * 1200 for x in x_scale]
 x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
 p_list = [-180, -150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
@@ -81,9 +81,9 @@ def calc_posi(lgt):
     return base + real_width
 
 
-def Interval_Merge(itv_list, jiange):
+def Interval_Merge(itv_list, group):
     result_list = []
-    sub_list = [sorted(itv_list[x: x + jiange], key=lambda As: As['rect']) for x in range(0, len(itv_list), jiange)]
+    sub_list = [sorted(itv_list[x: x + group], key=lambda As: As['rect']) for x in range(0, len(itv_list), group)]
     # print(sub_list)
     for l in sub_list:
         slist = []
@@ -100,7 +100,7 @@ def Interval_Merge(itv_list, jiange):
     return result_list
 
 
-def rect_posi(tier2_asns, jiange):
+def rect_posi(tier1_asns, tier2_asns, asn_leafs, group):
     rects = []
     lgtss = []
     # lines = []
@@ -124,13 +124,15 @@ def rect_posi(tier2_asns, jiange):
             "yp": thigh + 1,
             "height": high,
             "name": f'{asn["asn"]}, {asn["name"]}, {asn["country"]}',
-            "scale": asn["scale"]
+            "scale": asn["scale"],
+            "color": asn["color"]
         }
+        dark_color = asn["dark_color"]
         nnn += 1
         yax_key.append(thigh + high - 100)
         yax_value.append(nnn)
 
-        a["color"], dark_color = rand_color()
+        # a["color"], dark_color = rand_color()
         thigh += high
         for rx in asn["rects"]:
             b = {x: y for x, y in a.items()}
@@ -149,7 +151,7 @@ def rect_posi(tier2_asns, jiange):
 
     # # print(rects, dots)
     # thigh += 30
-    tier2_asns = Interval_Merge(tier2_asns, jiange)
+    tier2_asns = Interval_Merge(tier2_asns, group)
     dasns = set()
 
     for line in tier2_asns:
@@ -172,7 +174,6 @@ def rect_posi(tier2_asns, jiange):
             tier2_rects.append(b)
 
             lgts = asn["rect"]
-            print(lgts)
             for l in lgts:
                 lgtss.append({"xp": calc_posi(l), "yp": a["yp"], "width": 2,
                               "color": dark_color, "height": a["height"] - 3, "lgt": l})
@@ -196,12 +197,14 @@ def rect_posi(tier2_asns, jiange):
         if nnn % 5 == 0:
             yax_key.append(thigh - 100)
             yax_value.append(nnn)
+    yax_key.append(thigh - 100)
+    yax_value.append(nnn)
 
     # print(len(tier2_rects))
     return rects, lgtss, tier2_rects, dots, yax_key, yax_value
 
 
-arg = {"group": 85}
+arg = {"group": 85, "jiange": 50}
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -210,6 +213,12 @@ class MainHandler(tornado.web.RequestHandler):
         # print(self.request.arguments)
         if "group" in self.request.arguments:
             arg["group"] = int(self.get_argument("group"))
+        # else:
+        #     arg["group"] = 85
+        if "jiange" in self.request.arguments:
+            arg["jiange"] = int(self.get_argument("jiange"))
+        # else:
+        #     arg["jiange"] = 50
         pos_to_name = {x_list[0]: "", x_list[-1]: ""}
         for city in citys:
             posi = calc_posi(citys[city][0])
@@ -224,10 +233,13 @@ class MainHandler(tornado.web.RequestHandler):
 class JsonHandler(tornado.web.RequestHandler):
 
     def get(self):
-        # print(lines)
-        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier2_asns, arg["group"])
-        # print(tier2_rects[:20])
-        # print(yax_key, yax_value)
+        if "group" in self.request.arguments:
+            arg["group"] = int(self.get_argument("group"))
+        if "jiange" in self.request.arguments:
+            arg["jiange"] = int(self.get_argument("jiange"))
+        tier1_asns, tier2_asns, asn_leafs = get_info(jiange=arg["jiange"])
+        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, arg["group"])
+        # print(arg["group"], yax_value[-1])
         self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots, "yax": [yax_key, yax_value]}))
 
 

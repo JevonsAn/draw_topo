@@ -11,13 +11,23 @@
             <div class="col-md-2"  style="margin-left: 50px;">
                 <input type="text" class="form-control" id="searchIp" style="margin-left: 30px;" placeholder="请输入自治域号">
             </div>
-            <div class="col-md-2" style="margin-left: 10px;">
+            <div class="col-md-1" style="margin-left: 10px;">
                 <button id="searchBt" class="btn btn-info">
                     搜索
                 </button>
             </div>
-
-            <div class="col-md-1 col-md-offset-5"  style="padding-left: 50px;">
+            <div class="col-md-2"  style="margin-left: 0px;">
+                <input type="text" class="form-control" id="jiange" style="margin-left: 30px;" placeholder="分割矩形的间隔(默认50)">
+            </div>
+            <div class="col-md-2"  style="margin-left: -20px;">
+                <input type="text" class="form-control" id="group" style="margin-left: 30px;" placeholder="内部压缩的矩形数目(默认85)">
+            </div>
+            <div class="col-md-1" style="margin-left: 10px;">
+                <button id="freshBt" class="btn btn-info">
+                    重画
+                </button>
+            </div>
+            <div class="col-md-1"  style="padding-left: 100px;">
                 <button id="lineBt" class="btn btn-default">
                     显示城市定位线
                 </button>
@@ -30,6 +40,23 @@
                 <svg id="fix" width="1450" height="76">
 
                 </svg>
+            </div>
+            <div id="fixedLayer2" style="position:fixed;top: 130px;right: 20px;width:150px;height:100px;background-color:rgba(256,256,256,0.4);"> <!--opacity:0.7;left: 40px;-->
+                <h4 style="text-align: center">图例</h4>
+                <div style=""></div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">美国（US）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">中国（CN/HK）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #008000"></div><div style="">巴西（BR）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FFFF00"></div><div style="">俄罗斯（RU）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #800080"></div><div style="">波兰（PL）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FFC0CB"></div><div style="">英国（GB）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #DAA520"></div><div style="">乌克兰（UA）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #808080"></div><div style="">德国（DE）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #0000FF"></div><div style="">荷兰（NL）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">加拿大（CA）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #90EE90"></div><div style="">法国（FR）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF8C00"></div><div style="">印度（IN）：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #D3D3D3"></div><div style="">日本（JP）：</div>
             </div>
             <svg id="topo" width="1450" height="4000">
 
@@ -146,9 +173,12 @@
 	let xdl = fsvg.select("g#新德里");
 	xdl.select("line").attr("y2", "-20");
 	xdl.select("text").attr("y", "-25");
+    clearSvg();
+	getjson(50, 85);
 
-
-	d3.json("json", function(error, graph) {
+function getjson(jiange, group) {
+    let urll = `json?jiange=${jiange}&group=${group}`
+    d3.json(urll, function (error, graph) {
 
         if (error) throw error;
 
@@ -161,36 +191,36 @@
         yAxis.tickSize(2, 5);
         yAxis.tickPadding(5);
         svg.append('g')
-           .attr('class', 'yAxisis')
-           .attr('transform', `translate(99, 100)`)
-           .call(yAxis);
+            .attr('class', 'yAxisis')
+            .attr('transform', `translate(99, 100)`)
+            .call(yAxis);
 
         // console.log(graph);
         // Tier1自治域
         let node = svg.selectAll(".tier1_rects")
-                  .data(graph.rects)
-                .enter().append("g")
-                  .attr("class", "tier1_rects")
-                  .attr("id",function (d) {
-                    return "tier1_rects"+d.asn;
-                  });
+            .data(graph.rects)
+            .enter().append("g")
+            .attr("class", "tier1_rects")
+            .attr("id", function (d) {
+                return "tier1_rects" + d.asn;
+            });
 
         node.append("rect")
             .attr("stroke", d => d.color)
-            .attr("stroke-width","0px")
+            .attr("stroke-width", "0px")
             .attr("fill", d => d.color)
             .attr("id", d => `as${d.asn}`)
             .attr("x", d => d.xp)
             .attr("y", d => d.yp)
             .attr("width", d => d.width)
             .attr("height", d => d.height)
-            .on("click",function(d) {
+            .on("click", function (d) {
 
             });
-            // .call(d3.drag()
-            //     .on("start", dragstarted)
-            //     .on("drag", dragged)
-            //     .on("end", dragended));
+        // .call(d3.drag()
+        //     .on("start", dragstarted)
+        //     .on("drag", dragged)
+        //     .on("end", dragended));
 
         //鼠标悬停文字
         node.append("title")
@@ -201,29 +231,29 @@
 
         // Tier2矩形
         let tier2_node = svg.selectAll(".tier2_rects")
-                      .data(graph.rect2s)
-                    .enter().append("g")
-                      .attr("class", "tier2_rects")
-                      .attr("id",function (d) {
-                        return "tier2_rects"+d.asn;
-                      });
+            .data(graph.rect2s)
+            .enter().append("g")
+            .attr("class", "tier2_rects")
+            .attr("id", function (d) {
+                return "tier2_rects" + d.asn;
+            });
         // console.log(graph.rect2s[0]);
         tier2_node.append("rect")
             .attr("stroke", d => d.color)
             .attr("id", d => `as${d.asn}`)
-            .attr("stroke-width","0px")
+            .attr("stroke-width", "0px")
             .attr("fill", d => d.color)
             .attr("x", d => d.xp)
             .attr("y", d => d.yp)
             .attr("width", d => d.width)
             .attr("height", d => d.height)
-            .on("click",function(d) {
+            .on("click", function (d) {
 
             });
-            // .call(d3.drag()
-            //     .on("start", dragstarted)
-            //     .on("drag", dragged)
-            //     .on("end", dragended));
+        // .call(d3.drag()
+        //     .on("start", dragstarted)
+        //     .on("drag", dragged)
+        //     .on("end", dragended));
 
         tier2_node.append("title")
             .text(d => `自治域号：${d.asn}
@@ -232,29 +262,30 @@
                         customer数量：${d.scale}`);
 
         //Tier1和Tier2的位置信息竖条
-        let node2 = svg.append("g")
-                        .selectAll(".tier1_lgts")
-                      .data(graph.lgts)
-                    .enter().append("g")
-                      .attr("class", "tier1_lgts");
+        let node2 = svg.append("g").attr("class", "tier1_lgt")
+            .selectAll(".tier1_lgts")
+            .data(graph.lgts)
+            .enter().append("g")
+            .attr("class", "tier1_lgts");
 
         node2.append("rect")
             .attr("stroke", d => d.color)
-            .attr("stroke-width","0px")
+            .attr("stroke-width", "0px")
             .attr("fill", d => d.color)
             .attr("x", d => d.xp)
             .attr("y", d => d.yp)
             .attr("width", d => d.width)
             .attr("height", d => d.height);
 
-        node2.append("title")
-            .text(d => `${d.lgt}`);
+        // node2.append("title")
+        //     .text(d => `${d.lgt}`);
 
         //所有其他自治域的小点
-        let dots = svg.append("g").selectAll(".leaf_dot")
-                    .data(graph.dots)
-                    .enter()
-                    .append("g");
+        let dots = svg.append("g").attr("class", "leaf_dot")
+            .selectAll(".leaf_dots")            
+            .data(graph.dots)
+            .enter()
+            .append("g");
 
         dots.append("circle")
             .attr("cx", d => d.xp)
@@ -283,76 +314,126 @@
 
         // Tier1矩形上的文字
         let text1 = svg.selectAll(".tier1_texts")
-                      .data(graph.rects)
-                    .enter().append("g")
-                      .attr("class", "tier1_texts")
-                      .attr("id",function (d) {
-                        return "tier1_texts"+d.asn;
-                      });
+            .data(graph.rects)
+            .enter().append("g")
+            .attr("class", "tier1_texts")
+            .attr("id", function (d) {
+                return "tier1_texts" + d.asn;
+            });
         text1.append("text")
-                // .attr("dx", 0)
-                // .attr("dy", ".35em")
-                .attr("x", d => d.xp + d.width/2)
-                .attr("y", d => d.yp + 4 + d.height/2)
-                .attr("style","background-color:white;opacity:1;")
-                .style("text-anchor", "middle")
-                .attr("class", "word")
-                .style("fill", "#000")
-                .style("font-family", "Arial")
-                .style("font-size", d => d.height * 0.7)
-                .text(function (d) {
-                    if (d.width < 25){
-                        return "";
-                    }else {
-                        return `${d.asn},${d.name.split(',')[1].split(' ')[1]},${d.name.split(',')[2]}`;
-                    }
-                });
+        // .attr("dx", 0)
+        // .attr("dy", ".35em")
+            .attr("x", d => d.xp + d.width / 2)
+            .attr("y", d => d.yp + 4 + d.height / 2)
+            .attr("style", "background-color:white;opacity:1;")
+            .style("text-anchor", "middle")
+            .attr("class", "word")
+            .style("fill", "#000")
+            .style("font-family", "Arial")
+            .style("font-size", d => d.height * 0.7)
+            .text(function (d) {
+                if (d.width < 25) {
+                    return "";
+                } else {
+                    return `${d.asn},${d.name.split(',')[1].split(' ')[1]},${d.name.split(',')[2]}`;
+                }
+            });
 
         // Tier2矩形上的文字
         let text2 = svg.selectAll(".tier2_texts")
-                      .data(graph.rect2s)
-                    .enter().append("g")
-                      .attr("class", "tier2_texts")
-                      .attr("id",function (d) {
-                        return "tier2_texts"+d.asn;
-                      });
+            .data(graph.rect2s)
+            .enter().append("g")
+            .attr("class", "tier2_texts")
+            .attr("id", function (d) {
+                return "tier2_texts" + d.asn;
+            });
         text2.append("text")
-                // .attr("dx", 0)
-                // .attr("dy", ".35em")
-                .attr("x", d => d.xp + d.width/2)
-                .attr("y", d => d.yp + 4 + d.height/2)
-                .attr("style","background-color:white;opacity:1;")
-                .style("text-anchor", "middle")
-                .attr("class", "word")
-                .style("fill", "#000")
-                .style("font-family", "Arial")
-                .style("font-size", d => d.height * 0.9)
-                .text(function (d) {
-                    if (d.width < 25){
-                        return "";
-                    }else {
-                        return d.asn;
-                    }
-                });
+        // .attr("dx", 0)
+        // .attr("dy", ".35em")
+            .attr("x", d => d.xp + d.width / 2)
+            .attr("y", d => d.yp + 4 + d.height / 2)
+            .attr("style", "background-color:white;opacity:1;")
+            .style("text-anchor", "middle")
+            .attr("class", "word")
+            .style("fill", "#000")
+            .style("font-family", "Arial")
+            .style("font-size", d => d.height * 0.9)
+            .text(function (d) {
+                if (d.width < 25) {
+                    return "";
+                } else {
+                    return d.asn;
+                }
+            });
 
 
         // 城市定位线
         let link = svg.selectAll(".link")
-                      .data(graph.lines)
-                    .enter().append("g")
-                      .attr("class", "link");
+            .data(graph.lines)
+            .enter().append("g")
+            .attr("class", "link");
         link.append("line")
-                .attr("x1", d => d.xp)
-                .attr("y1", 50)
-                .attr("x2", d => d.xp)
-                .attr("y2", 5000)
-                .attr("style","background-color:white;opacity:0;")
-                .attr("stroke-dasharray", "2 2")
-                .attr("stroke", "#444")
-                .attr("stroke-width", "1px");
+            .attr("x1", d => d.xp)
+            .attr("y1", 50)
+            .attr("x2", d => d.xp)
+            .attr("y2", 5000)
+            .attr("style", "background-color:white;opacity:0;")
+            .attr("stroke-dasharray", "2 2")
+            .attr("stroke", "#444")
+            .attr("stroke-width", "1px");
 
     });
+}
+function clearSvg() {
+    svg.select(".yAxisis").remove();
 
+    let node = svg.selectAll(".tier1_rects");
+    node.remove();
+
+    let tier2_node = svg.selectAll(".tier2_rects");
+    tier2_node.remove();
+
+    let node2 = svg.selectAll(".tier1_lgt");
+    node2.remove();
+
+    let dots = svg.selectAll(".leaf_dot");
+    dots.remove();
+
+    let text1 = svg.selectAll(".tier1_texts");
+    text1.remove();
+
+    let text2 = svg.selectAll(".tier2_texts");
+    text2.remove();
+
+    let link = svg.selectAll(".link");
+    link.remove();
+}
+</script>
+<script>
+    $("#freshBt").click(function (){
+        let jiange = 50, group = 85;
+        ct1 = $("#jiange").val();
+        ct2 = $("#group").val();
+        let intt = /\d/;
+        if (ct1 != "" && !intt.test(ct1)){
+            alert("输入的值只能是整数");
+            return;
+        }
+        else if (ct2 != "" && !intt.test(ct2)){
+            alert("输入的值只能是整数");
+            return;
+        }
+        else {
+            if (ct1){
+                jiange = ct1; 
+            }
+            if (ct2){
+                group = ct2;
+            }
+            clearSvg();
+            getjson(jiange, group);
+        }        
+    });
 </script>
 <script>
 	let btFlag = 1;
