@@ -381,13 +381,13 @@ country_color = {
 
 def get_info(jiange=50):   # jiange = 50 空白多少用来分割大矩形
     asn_leafs = dict()
-    # 18881|22561|RPNET INFORMATICA LTDA - ME|BR|-53.4552996887207|-24.9558
+    # 262589|265315|BINDNET RJ|BR|-43.0|-22.9028|(262589, 262788, 265315)|['168.121.176.0/24', '168.121.177.0/24', '168.121.178.0/24', '168.121.179.0/24']
     with open("static/leafs.txt", encoding="utf-8") as f:
         for line in f.readlines():
             sp = line.strip().split("|")
             pvd = int(sp[0])
             lgt = float(sp[4])
-            other = f'{sp[1]}|{sp[2]}|{sp[3]}|{sp[5]}|{sp[6]}'
+            other = f'{sp[1]}|{sp[2]}|{sp[3]}|{sp[5]}|{sp[6]}|{sp[7]}'
             if pvd not in asn_leafs:
                 asn_leafs[pvd] = [(lgt, other)]
             else:
@@ -398,8 +398,8 @@ def get_info(jiange=50):   # jiange = 50 空白多少用来分割大矩形
         for line in f.readlines():
             sp = line.strip().split("|")
             As = {}
-            if len(sp) == 6:
-                As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp
+            if len(sp) == 7:
+                As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp[:-1]
                 As["posis"] = eval(As["posis"])
                 As["rects"] = calc_width(As["posis"], jiange)
                 if As["country"] not in country_color:
@@ -417,9 +417,9 @@ def get_info(jiange=50):   # jiange = 50 空白多少用来分割大矩形
     with open("static/tier2_info.txt") as f:
         for line in f.readlines():
             sp = line.strip().split("|")
-            if len(sp) == 6:
+            if len(sp) == 7:
                 As = {}
-                As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp
+                As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp[:-1]
                 As["posis"] = eval(As["posis"])
                 if As["country"] not in country_color:
                     As["color"], As["dark_color"] = rand_color()

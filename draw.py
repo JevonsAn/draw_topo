@@ -4,6 +4,7 @@ import os
 import random
 import math
 import json
+import requests
 
 from info import citys, get_info
 
@@ -243,12 +244,21 @@ class JsonHandler(tornado.web.RequestHandler):
         self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots, "yax": [yax_key, yax_value]}))
 
 
+class SearchHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        if "ip" in self.request.arguments:
+            ip = self.get_argument("ip")
+            r = requests.get("http://10.10.11.132:5778/?ip="+ip)
+            self.write(r.content)
+
 if __name__ == "__main__":
     # tornado.options.parse_command_line()
     application = tornado.web.Application(
         handlers=[
             (r"/", MainHandler),
             (r"/json", JsonHandler),
+            (r"/search", SearchHandler),
             # (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/home/auto/bgpsim/web"})
         ],
         debug=True,
