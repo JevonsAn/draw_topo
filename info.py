@@ -1,5 +1,7 @@
 import math
 import random
+import datetime
+# import json
 
 citys = {
     "北京": [116.39723, 39.9075],
@@ -103,6 +105,8 @@ citys = {
 
 
 }
+
+p_list = [-180, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
 
 
 def rand_color():
@@ -282,7 +286,7 @@ def calc_width(l, jiange):
     return new_rects
 
 
-def calc_width22(l, jiange):
+def calc_width22(l, jiange, leafs):
     # 寻找差别最大点作为起点
     max_wid = 0
     max_index = 0
@@ -340,25 +344,80 @@ def calc_width22(l, jiange):
                 else:
                     negative.append(x)
             positive.append(180)
-            new_rects.append({"rect": positive, "max": False})
+            new_rects.append({"rect": positive, "max": False, "dots": []})
             if len(positive) > max_len:
                 max_len = len(positive)
                 max_index = len(new_rects) - 1
-            new_rects.append({"rect": negative, "max": False})
+            new_rects.append({"rect": negative, "max": False, "dots": []})
             if len(negative) > max_len:
                 max_len = len(negative)
                 max_index = len(new_rects) - 1
         else:
-            new_rects.append({"rect": r, "max": False})
+            new_rects.append({"rect": r, "max": False, "dots": []})
             if len(r) > max_len:
                 max_len = len(r)
                 max_index = len(new_rects) - 1
-    # print(new_rects, max_index, max_len)
+
+    new_rects.sort(key=lambda x: x["rect"])
+    leafs.sort(key=lambda x: x[0])
     if len(new_rects) == 0:
-        new_rects.append({"rect": [0, 0], "max": False})
-    new_rects[max_index]["max"] = True
-    new_rects[max_index]["little"] = little
+        new_rects.append({"rect": [0, 0], "max": False, "dots": leafs})
+    elif len(new_rects) == 1:
+        new_rects[0]["dots"] = leafs
+    else:
+        now_index = 0
+        for leafset in leafs:
+            if now_index + 1 >= len(new_rects):
+                new_rects[now_index]["dots"].append(leafset)
+                continue
+
+            leaf = int(leafset[0])
+            left_end = new_rects[now_index]["rect"][-1]
+            right_start = new_rects[now_index + 1]["rect"][0]
+
+            if leaf <= left_end:
+                new_rects[now_index]["dots"].append(leafset)
+            elif leaf >= right_start:
+                while True:
+                    if leaf >= new_rects[now_index + 1]["rect"][0]:
+                        now_index += 1
+                        if now_index + 1 >= len(new_rects):
+                            break
+                    else:
+                        break
+                if now_index >= len(new_rects):
+                    new_rects[-1]["dots"].append(leafset)
+                else:
+                    new_rects[now_index]["dots"].append(leafset)
+            else:
+                if leaf - left_end < right_start - leaf:
+                    new_rects[now_index]["dots"].append(leafset)
+                else:
+                    new_rects[now_index + 1]["dots"].append(leafset)
+                    now_index += 1
+        new_rects[max_index]["max"] = True
+        new_rects[max_index]["little"] = little
+    # print(new_rects)
     return new_rects
+
+
+def Interval_Merge(itv_list, group):
+    result_list = []
+    sub_list = [sorted(itv_list[x: x + group], key=lambda As: As['rect']) for x in range(0, len(itv_list), group)]
+    # print(sub_list)
+    for l in sub_list:
+        slist = []
+        lset = [1] * len(l)
+        for i, x in enumerate(l):
+            for j, y in enumerate(l[i:]):
+                if lset[i + j]:
+                    if not slist or slist[-1]['rect'][-1] <= y['rect'][0]:
+                        slist.append(y)
+                        lset[i + j] = 0
+            if slist:
+                result_list.append(slist)
+            slist = []
+    return result_list
 
 
 country_color = {
@@ -379,7 +438,31 @@ country_color = {
 }
 
 
-def get_info(jiange=50):   # jiange = 50 空白多少用来分割大矩形
+def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大矩形
+    x_scale = [0] * (len(p_list) - 1)
+
+    def calc_posi(rects):
+        # print(rects)
+        for rx in rects:
+            # print(rx)
+            t0 = len(p_list) - 2
+            for i in range(len(p_list) - 1):
+                if p_list[i] <= rx[0] < p_list[i + 1]:
+                    t0 = i
+                    break
+            t1 = len(p_list) - 2
+            for i in range(len(p_list) - 1):
+                if p_list[i] <= rx[1] < p_list[i + 1]:
+                    t1 = i
+                    break
+            if t1 > t0:
+                x_scale[t0] += p_list[t0 + 1] - rx[0]
+                x_scale[t1] += rx[1] - p_list[t1]
+                for t in range(t0 + 1, t1):
+                    x_scale[t] += p_list[t + 1] - p_list[t]
+            else:
+                x_scale[t0] += rx[1] - rx[0]
+
     asn_leafs = dict()
     # 262589|265315|BINDNET RJ|BR|-43.0|-22.9028|(262589, 262788, 265315)|['168.121.176.0/24', '168.121.177.0/24', '168.121.178.0/24', '168.121.179.0/24']
     with open("static/leafs.txt", encoding="utf-8") as f:
@@ -407,11 +490,11 @@ def get_info(jiange=50):   # jiange = 50 空白多少用来分割大矩形
                 else:
                     As["color"], As["dark_color"] = rand_color2(country_color[As["country"]])
                 tier1_asns.append(As)
+                calc_posi(As["rects"])
                 # if As["country"] not in country_count:
                 #     country_count[As["country"]] = 1
                 # else:
                 #     country_count[As["country"]] += 1
-
 
     tier2_asns = []
     with open("static/tier2_info.txt") as f:
@@ -429,15 +512,21 @@ def get_info(jiange=50):   # jiange = 50 空白多少用来分割大矩形
                 #     country_count[As["country"]] = 1
                 # else:
                 #     country_count[As["country"]] += 1
-                # print(As)
-                rects = calc_width22(As["posis"],  50)  # 在这里把矩形分成小矩形 As["posis"], jiange
-
-                # rects变了，此处要修改
-
+                rects = calc_width22(As["posis"], jiange, asn_leafs.get(int(As["asn"]), []))  # 在这里把矩形分成小矩形 As["posis"], jiange
+                # print(rects)
                 for rx in rects:
                     b = {x: y for x, y in As.items() if x != "posis"}
                     b.update(rx)
                     tier2_asns.append(b)
+                calc_posi([(x["rect"][0], x["rect"][-1]) for x in rects])
 
-    return tier1_asns, tier2_asns, asn_leafs
+    tier2_asns = Interval_Merge(tier2_asns, group)
+    return tier1_asns, tier2_asns, asn_leafs, x_scale
 
+
+def get_relations():
+    relation_text = ""
+    with open("static/get_relations.txt") as f:
+        relation_text = f.read()
+    relations = eval(relation_text)
+    return relations

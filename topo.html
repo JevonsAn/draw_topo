@@ -16,7 +16,7 @@
                     搜索
                 </button>
             </div>
-            <div class="col-md-2"  style="margin-left: 0px;">
+            <div class="col-md-2"  style="margin-left: -50px;">
                 <input type="text" class="form-control" id="jiange" style="margin-left: 30px;" placeholder="分割矩形的间隔(默认50)">
             </div>
             <div class="col-md-2"  style="margin-left: -20px;">
@@ -27,7 +27,15 @@
                     重画
                 </button>
             </div>
-            <div class="col-md-1"  style="padding-left: 100px;">
+            <div class="col-md-1"  style="margin-left: -30px;">
+                <input type="text" class="form-control" id="relation" style="margin-left: 30px;" placeholder="自治域号">
+            </div>
+            <div class="col-md-1" style="margin-left: 10px;">
+                <button id="relationBt" class="btn btn-info">
+                    查看邻居
+                </button>
+            </div>
+            <div class="col-md-1"  style="padding-left: 50px;margin-right: 50px;">
                 <button id="lineBt" class="btn btn-default">
                     显示城市定位线
                 </button>
@@ -41,8 +49,10 @@
 
                 </svg>
             </div>
-            <div id="fixedLayer2" style="position:fixed;top: 130px;right: 20px;width:150px;height:100px;background-color:rgba(256,256,256,0.4);"> <!--opacity:0.7;left: 40px;-->
-                <h4 style="text-align: center">图例</h4>
+            <div id="fixedLayer2" style="position:fixed;top: 110px;right: 20px;width:150px;height:100px;background-color:rgba(256,256,256,0.4);"> <!--opacity:0.7;left: 40px;-->
+                <h4 style="text-align: center;margin-bottom: 25px;">图例</h4>
+                <!-- <br/> -->
+                <h5 style="text-align: center">自治域颜色</h5>
                 <div style=""></div>
                 <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">美国（US）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">中国（CN/HK）：</div>
@@ -57,6 +67,14 @@
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #90EE90"></div><div style="">法国（FR）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF8C00"></div><div style="">印度（IN）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #D3D3D3"></div><div style="">日本（JP）：</div>
+
+                <br/>
+                <h5 style="text-align: center">邻居关系</h5>
+                <div style=""></div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: black"></div><div style="">自己</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: red"></div><div style="">provider</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: blue"></div><div style="">peer</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: green"></div><div style="">customer</div>
             </div>
             <svg id="topo" width="1450" height="4000">
 
@@ -308,7 +326,7 @@ function getjson(jiange, group) {
                 return `自治域号：${sp[0]}
                         所在国家：${sp[2]}
                         自治域名称：${sp[1]}
-                        经度：${sp[3]}
+                        经度：${d.lgt}
                         ASpath：${sp[4]}
                         声明的前缀：${sp[5]}`;
             });
@@ -333,7 +351,7 @@ function getjson(jiange, group) {
             .style("font-family", "Arial")
             .style("font-size", d => d.height * 0.7)
             .text(function (d) {
-                if (d.width < 25) {
+                if (d.width < 100) {
                     return "";
                 } else {
                     return `${d.asn},${d.name.split(',')[1].split(' ')[1]},${d.name.split(',')[2]}`;
@@ -360,7 +378,7 @@ function getjson(jiange, group) {
             .style("font-family", "Arial")
             .style("font-size", d => d.height * 0.9)
             .text(function (d) {
-                if (d.width < 25) {
+                if (d.width < 40) {
                     return "";
                 } else {
                     return d.asn;
@@ -415,12 +433,12 @@ function clearSvg() {
         let jiange = 50, group = 85;
         ct1 = $("#jiange").val();
         ct2 = $("#group").val();
-        let intt = /\d/;
-        if (ct1 != "" && !intt.test(ct1)){
+        let int_match = /^[1-9]\d*$/;
+        if (ct1 != "" && !int_match.test(ct1)){
             alert("输入的值只能是整数");
             return;
         }
-        else if (ct2 != "" && !intt.test(ct2)){
+        else if (ct2 != "" && !int_match.test(ct2)){
             alert("输入的值只能是整数");
             return;
         }
@@ -438,16 +456,19 @@ function clearSvg() {
 </script>
 <script>
     let last = [];
-    function asn_highligter(target){
+    let int_match = /^[1-9]\d*$/;
+    let ip_match = /^(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))$/;
+    
+    function asn_highligter(target, color){
         for (x of target._groups[0]){
             // console.log(x);
             if (x.tagName === 'rect'){
                 let t = svg.append("rect")
-                    .attr("x", x.x.animVal.value - 6)
-                    .attr("y", x.y.animVal.value - 5)
+                    .attr("x", x.x.animVal.value - 5.5)
+                    .attr("y", x.y.animVal.value - 4.5)
                     .attr("width", parseFloat(x.width.animVal.value) + 12)
                     .attr("height", parseFloat(x.height.animVal.value) + 10)
-                    .attr("stroke", "red")
+                    .attr("stroke", color)
                     .attr("class", "twink")
                     .attr("fill", "none")
                     .attr("stroke-width", "2px");
@@ -458,12 +479,24 @@ function clearSvg() {
                     .attr("cx", x.cx.animVal.value)
                     .attr("cy", x.cy.animVal.value)
                     .attr("r", parseFloat(x.r.animVal.value) + 6)
-                    .attr("stroke", "red")
+                    .attr("stroke", color)
                     .attr("fill", "none")
                     .attr("class", "twink")
                     .attr("stroke-width", "2px");
                 last.push(t);
             }
+        }
+    }
+    function relation_highligter(provider, customer, peer){
+        console.log(provider, customer, peer);
+        for (x of provider){
+            asn_highligter(d3.selectAll(`#as${x}`), "red");
+        }
+        for (x of customer){
+            asn_highligter(d3.selectAll(`#as${x}`), "green");
+        }
+        for (x of peer){
+            asn_highligter(d3.selectAll(`#as${x}`), "blue");
         }
     }
 	let btFlag = 1;
@@ -499,7 +532,7 @@ function clearSvg() {
             let target = d3.selectAll(`#as${content}`);
             // console.log(target);
             if (target._groups[0].length){
-                asn_highligter(target);
+                asn_highligter(target, "black");
                 // console.log(last);           
             }
             else{
@@ -511,14 +544,14 @@ function clearSvg() {
                 ip: content,
             }).done(function (data) {
                 let search_result = JSON.parse(data);
-                console.log(search_result);
+                // console.log(search_result);
                 if (search_result && search_result.asn_list){
                     let asn = search_result.asn_list[0];
-                    console.log(asn);
+                    // console.log(asn);
                     let target = d3.selectAll(`#as${asn}`);
                     // console.log(target);
                     if (target._groups[0].length){
-                        asn_highligter(target);
+                        asn_highligter(target, "black");
                         alert(`自治域为${asn}, 前缀为${search_result.prefix}`);
                     }
                     else{
@@ -535,8 +568,43 @@ function clearSvg() {
         }
         else{
             alert("不支持的查询格式");
+        }       
+
+    });
+
+    $("#relationBt").click(function () {
+        let content = $("#relation").val();
+        for (let thing of last){
+            thing.remove();
         }
-        
+        last = [];        
+
+        if (!content){
+            alert("请输入查询内容!");
+        }
+        else if (int_match.test(content)){  //输入的是整数，认为是asn            
+            $.get("relation", {
+                asn: content,
+            }).done(function (data) {
+                // alert(data);
+                let search_result = JSON.parse(data);
+                if (search_result){ //result 不是 null                    
+                    let providers = search_result.provider;
+                    let peers = search_result.peer;
+                    let customers = search_result.customer;
+                    asn_highligter(d3.selectAll(`#as${content}`), "blue");
+                    relation_highligter(providers, customers, peers);
+                }
+                else{
+                    alert("未查询到该自治域!");
+                }
+            }).fail(function (xhr, status) {
+                alert("查询失败!");
+            });            
+        }
+        else{
+            alert("请输入整数");
+        }       
 
     });
 </script>

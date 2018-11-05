@@ -6,21 +6,28 @@ import math
 import json
 import requests
 
-from info import citys, get_info
+from info import citys, get_info, get_relations
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
-x_scale = [1, 1, 10, 10, 5, 6, 9, 4, 4, 4, 4, 3] # [3,3,3,3,3,3,3,3,3,3,3,3] #
+x_scale = [638, 2032, 2541, 778, 476, 2639, 928, 607, 974, 1192, 267]  # [800, 4167, 3378, 1519, 1260, 3530, 2473, 1830, 2276, 2988, 700]
 x_width = [x / sum(x_scale) * 1200 for x in x_scale]
 x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
-p_list = [-180, -150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
-du_list = ['%d° W' % i for i in range(180, -1, -30)] + ['%d° E' % i for i in range(30, 181, 30)]
+p_list = [-180, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
+du_list = ['%d° W' % i for i in p_list[:5]] + ["0° "] + ['%d° E' % i for i in p_list[6:]]
+
+# x_scale = [766, 1114, 4167, 3378, 1519, 1260, 3530, 2473, 1830, 2276, 2988, 1370]
+# # [2.2, 10, 10, 5, 6, 9, 4, 4, 4, 4, 1.6]  # [3,3,3,3,3,3,3,3,3,3,3,3] #
+# x_width = [x / sum(x_scale) * 1200 for x in x_scale]
+# x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
+# p_list = [-180, -150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
+# du_list = ['%d° W' % i for i in p_list[:5]] + ["0° "] + ['%d° E' % i for i in p_list[6:]]
 
 # rects = []
 
 lines = []
-# tier2_rects = []
+relationship = get_relations()
 
 
 def rand_color():
@@ -78,30 +85,11 @@ def calc_posi(lgt):
             break
     base = x_list[t]
     width = lgt - p_list[t]
-    real_width = width / 30 * x_width[t]
+    real_width = width / (p_list[t + 1] - p_list[t]) * x_width[t]
     return base + real_width
 
 
-def Interval_Merge(itv_list, group):
-    result_list = []
-    sub_list = [sorted(itv_list[x: x + group], key=lambda As: As['rect']) for x in range(0, len(itv_list), group)]
-    # print(sub_list)
-    for l in sub_list:
-        slist = []
-        lset = [1] * len(l)
-        for i, x in enumerate(l):
-            for j, y in enumerate(l[i:]):
-                if lset[i + j]:
-                    if not slist or slist[-1]['rect'][-1] <= y['rect'][0]:
-                        slist.append(y)
-                        lset[i + j] = 0
-            if slist:
-                result_list.append(slist)
-            slist = []
-    return result_list
-
-
-def rect_posi(tier1_asns, tier2_asns, asn_leafs, group):
+def rect_posi(tier1_asns, tier2_asns, asn_leafs):
     rects = []
     lgtss = []
     # lines = []
@@ -109,7 +97,6 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, group):
     tier2_rects = []
     yax_key = [0]
     yax_value = [0]
-
 
     thigh = 100
     nnn = 0
@@ -152,7 +139,7 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, group):
 
     # # print(rects, dots)
     # thigh += 30
-    tier2_asns = Interval_Merge(tier2_asns, group)
+
     dasns = set()
 
     for line in tier2_asns:
@@ -178,6 +165,10 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, group):
             for l in lgts:
                 lgtss.append({"xp": calc_posi(l), "yp": a["yp"], "width": 2,
                               "color": dark_color, "height": a["height"] - 3, "lgt": l})
+            for l in asn["dots"]:
+                pl = calc_posi(l[0])
+                dots.append(
+                    {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
 
             if asn["max"]:
                 for x in asn["little"]:  # 画同自治域的小矩形
@@ -186,13 +177,13 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, group):
                     b["width"] = calc_posi(x + 2) - b["xp"]   # 小矩形宽4
                     tier2_rects.append(b)
 
-                if a["asn"] not in dasns:
-                    # print(a["asn"])
-                    for l in asn_leafs.get(a["asn"], []):
-                        pl = calc_posi(l[0])
-                        dots.append(
-                            {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
-                    dasns.add(a["asn"])
+                # if a["asn"] not in dasns:
+                #     # print(a["asn"])
+                #     for l in asn_leafs.get(a["asn"], []):
+                #         pl = calc_posi(l[0])
+                #         dots.append(
+                #             {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
+                #     dasns.add(a["asn"])
         thigh += high
         nnn += 1
         if nnn % 5 == 0:
@@ -238,8 +229,9 @@ class JsonHandler(tornado.web.RequestHandler):
             arg["group"] = int(self.get_argument("group"))
         if "jiange" in self.request.arguments:
             arg["jiange"] = int(self.get_argument("jiange"))
-        tier1_asns, tier2_asns, asn_leafs = get_info(jiange=arg["jiange"])
-        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, arg["group"])
+        tier1_asns, tier2_asns, asn_leafs, x_scae = get_info(jiange=arg["jiange"], group=arg["group"])
+        print(x_scae)
+        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs)
         # print(arg["group"], yax_value[-1])
         self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots, "yax": [yax_key, yax_value]}))
 
@@ -249,8 +241,17 @@ class SearchHandler(tornado.web.RequestHandler):
     def get(self):
         if "ip" in self.request.arguments:
             ip = self.get_argument("ip")
-            r = requests.get("http://10.10.11.132:5778/?ip="+ip)
+            r = requests.get("http://10.10.11.132:5778/?ip=" + ip)
             self.write(r.content)
+
+
+class RelationHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        if "asn" in self.request.arguments:
+            asn = int(self.get_argument("asn"))
+            self.write(json.dumps(relationship.get(asn, "null")))
+
 
 if __name__ == "__main__":
     # tornado.options.parse_command_line()
@@ -259,6 +260,7 @@ if __name__ == "__main__":
             (r"/", MainHandler),
             (r"/json", JsonHandler),
             (r"/search", SearchHandler),
+            (r"/relation", RelationHandler),
             # (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/home/auto/bgpsim/web"})
         ],
         debug=True,
