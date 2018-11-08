@@ -469,7 +469,7 @@ function clearSvg() {
                     .attr("width", parseFloat(x.width.animVal.value) + 12)
                     .attr("height", parseFloat(x.height.animVal.value) + 10)
                     .attr("stroke", color)
-                    .attr("class", "twink")
+                    // .attr("class", "twink")
                     .attr("fill", "none")
                     .attr("stroke-width", "2px");
                 last.push(t);
@@ -481,7 +481,7 @@ function clearSvg() {
                     .attr("r", parseFloat(x.r.animVal.value) + 6)
                     .attr("stroke", color)
                     .attr("fill", "none")
-                    .attr("class", "twink")
+                    // .attr("class", "twink")
                     .attr("stroke-width", "2px");
                 last.push(t);
             }
@@ -592,7 +592,7 @@ function clearSvg() {
                     let providers = search_result.provider;
                     let peers = search_result.peer;
                     let customers = search_result.customer;
-                    asn_highligter(d3.selectAll(`#as${content}`), "blue");
+                    asn_highligter(d3.selectAll(`#as${content}`), "black");
                     relation_highligter(providers, customers, peers);
                 }
                 else{
