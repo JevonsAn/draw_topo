@@ -224,16 +224,19 @@ def rand_color2(color):
 
     r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
     h, s, v = rgb2hsv(r, g, b)
-    h1, s1, v1 = randh(h, 15), randinter(s, 0.25), randinter(v, 0.25)
+    h1, s1, v1 = randh(h, 15), randinter(s, 0.15), randinter(v, 0.15)
     # print(h1, s1, v1)
     r, g, b = hsv2rgb(h1, s1, v1)
     res = "#%2s" % hex(r)[2:] + "%2s" % hex(g)[2:] + "%2s" % hex(b)[2:]
     res = res.upper().replace(" ", "0")
     # print(res)
 
-    h2 = random.randint(int(h1 - 20), int(h1 + 20))
-    s2 = random.randint(int(s1 * 256 - 20), int(s1 * 256 + 20)) / 256
-    v2 = (v1 * 256 - 50) / 256
+    h2 = randh(h1, 20)
+    s2 = randinter(s1, 20 / 256)
+    if v1 > 50 / 256:
+        v2 = v1 - 50 / 256
+    else:
+        v2 = 0.1
 
     r, g, b = hsv2rgb(h2, s2, v2)
     res2 = "#%2s" % hex(r)[2:] + "%2s" % hex(g)[2:] + "%2s" % hex(b)[2:]
@@ -358,6 +361,9 @@ def calc_width22(l, jiange, leafs):
                 max_len = len(r)
                 max_index = len(new_rects) - 1
 
+    # print(new_rects)
+    # print(set([int(x[0]) for x in leafs]))
+    # return
     new_rects.sort(key=lambda x: x["rect"])
     leafs.sort(key=lambda x: x[0])
     if len(new_rects) == 0:
@@ -424,18 +430,18 @@ country_color = {
     "US": "#87CEEB",
     "BR": "#008000",
     "RU": "#FFFF00",
-    "PL": "#9400D3",
-    "GB": "#FFC0CB",
+    "PL": "#B22222",
+    "GB": "#9400D3",
     "UA": "#DAA520",
     "DE": "#808080",
-    "NL": "#0000FF",
+    "NL": "#4682B4",
     "CA": "#B22222",
     "FR": "#90EE90",
-    "IN": "#FF8C00",
+    # "IN": "#FF8C00",
     "HK": "#FF0000",
     "CN": "#FF0000",
-    "JP": "#D3D3D3",
 }
+other_color = "#D3D3D3"
 
 
 def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大矩形
@@ -486,7 +492,7 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
                 As["posis"] = eval(As["posis"])
                 As["rects"] = calc_width(As["posis"], jiange)
                 if As["country"] not in country_color:
-                    As["color"], As["dark_color"] = rand_color()
+                    As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
                     As["color"], As["dark_color"] = rand_color2(country_color[As["country"]])
                 tier1_asns.append(As)
@@ -505,7 +511,7 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
                 As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp[:-1]
                 As["posis"] = eval(As["posis"])
                 if As["country"] not in country_color:
-                    As["color"], As["dark_color"] = rand_color()
+                    As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
                     As["color"], As["dark_color"] = rand_color2(country_color[As["country"]])
                 # if As["country"] not in country_count:
