@@ -476,7 +476,7 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
             sp = line.strip().split("|")
             pvd = int(sp[0])
             lgt = float(sp[4])
-            other = f'{sp[1]}|{sp[2]}|{sp[3]}|{sp[5]}|{sp[6]}|{sp[7]}'
+            other = "%s|%s|%s|%s|%s|%s" % (sp[1], sp[2], sp[3], sp[5], sp[6], sp[7])  # f'{sp[1]}|{sp[2]}|{sp[3]}|{sp[5]}|{sp[6]}|{sp[7]}'
             if pvd not in asn_leafs:
                 asn_leafs[pvd] = [(lgt, other)]
             else:

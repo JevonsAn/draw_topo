@@ -111,7 +111,7 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
             "asn": int(asn["asn"]),
             "yp": thigh + 1,
             "height": high,
-            "name": f'{asn["asn"]}, {asn["name"]}, {asn["country"]}',
+            "name": "%s, %s, %s" % (asn["asn"], asn["name"], asn["country"]),  # f'{asn["asn"]}, {asn["name"]}, {asn["country"]}',
             "scale": asn["scale"],
             "color": asn["color"]
         }
@@ -140,8 +140,6 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
     # # print(rects, dots)
     # thigh += 30
 
-    dasns = set()
-
     for line in tier2_asns:
         high = 12
         for asn in line:
@@ -149,7 +147,7 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
                 "asn": int(asn["asn"]),
                 "yp": thigh + 1,
                 "height": high,
-                "name": f'{asn["asn"]}, {asn["name"]}, {asn["country"]}',
+                "name": "%s, %s, %s" % (asn["asn"], asn["name"], asn["country"]),  # f'{asn["asn"]}, {asn["name"]}, {asn["country"]}',
                 "scale": asn["scale"],
                 "color": asn["color"]
             }
@@ -177,13 +175,6 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
                     b["width"] = calc_posi(x + 2) - b["xp"]   # 小矩形宽4
                     tier2_rects.append(b)
 
-                # if a["asn"] not in dasns:
-                #     # print(a["asn"])
-                #     for l in asn_leafs.get(a["asn"], []):
-                #         pl = calc_posi(l[0])
-                #         dots.append(
-                #             {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
-                #     dasns.add(a["asn"])
         thigh += high
         nnn += 1
         if nnn % 5 == 0:

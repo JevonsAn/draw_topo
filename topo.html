@@ -54,8 +54,7 @@
                 <!-- <br/> -->
                 <h5 style="text-align: center">自治域颜色</h5>
                 <div style=""></div>
-                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">美国（US）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">中国（CN/HK）：</div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">美国（US）：</div>                
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #008000"></div><div style="">巴西（BR）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FFFF00"></div><div style="">俄罗斯（RU）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">波兰（PL）：</div>
@@ -65,14 +64,13 @@
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #4682B4"></div><div style="">荷兰（NL）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">加拿大（CA）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #90EE90"></div><div style="">法国（FR）：</div>
-                <!-- <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF8C00"></div><div style="">印度（IN）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #D3D3D3"></div><div style="">日本（JP）：</div> -->
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">中国（CN）：</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #F7E3DF"></div><div style="">其他国家：</div>
 
                 <br/>
                 <h5 style="text-align: center">邻居关系</h5>
                 <div style=""></div>
-                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: black"></div><div style="">自己</div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: black"></div><div style="">self</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: red"></div><div style="">provider</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: blue"></div><div style="">peer</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: green"></div><div style="">customer</div>
@@ -465,10 +463,10 @@ function clearSvg() {
             // console.log(x);
             if (x.tagName === 'rect'){
                 let t = svg.append("rect")
-                    .attr("x", x.x.animVal.value - 5.5)
-                    .attr("y", x.y.animVal.value - 4.5)
-                    .attr("width", parseFloat(x.width.animVal.value) + 12)
-                    .attr("height", parseFloat(x.height.animVal.value) + 10)
+                    .attr("x", x.x.animVal.value - 2)
+                    .attr("y", x.y.animVal.value - 1)
+                    .attr("width", parseFloat(x.width.animVal.value) + 4)
+                    .attr("height", parseFloat(x.height.animVal.value) + 2)
                     .attr("stroke", color)
                     // .attr("class", "twink")
                     .attr("fill", "none")
@@ -479,7 +477,7 @@ function clearSvg() {
                 let t = svg.append("circle")
                     .attr("cx", x.cx.animVal.value)
                     .attr("cy", x.cy.animVal.value)
-                    .attr("r", parseFloat(x.r.animVal.value) + 6)
+                    .attr("r", parseFloat(x.r.animVal.value) + 2)
                     .attr("stroke", color)
                     .attr("fill", "none")
                     // .attr("class", "twink")
