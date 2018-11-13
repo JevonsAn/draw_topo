@@ -1,7 +1,6 @@
 import math
 import random
-import datetime
-# import json
+import radix
 
 citys = {
     "北京": [116.39723, 39.9075],
@@ -446,6 +445,7 @@ other_color = "#D3D3D3"
 
 def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大矩形
     x_scale = [0] * (len(p_list) - 1)
+    country_asn = dict()
 
     def calc_posi(rects):
         # print(rects)
@@ -477,6 +477,12 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
             pvd = int(sp[0])
             lgt = float(sp[4])
             other = "%s|%s|%s|%s|%s|%s" % (sp[1], sp[2], sp[3], sp[5], sp[6], sp[7])  # f'{sp[1]}|{sp[2]}|{sp[3]}|{sp[5]}|{sp[6]}|{sp[7]}'
+
+            if sp[3] in country_asn:
+                country_asn[sp[3]].append(sp[1])
+            else:
+                country_asn[sp[3]] = [sp[1]]
+
             if pvd not in asn_leafs:
                 asn_leafs[pvd] = [(lgt, other)]
             else:
@@ -495,6 +501,11 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
                     As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
                     As["color"], As["dark_color"] = rand_color2(country_color[As["country"]])
+
+                if As["country"] in country_asn:
+                    country_asn[As["country"]].append(As["asn"])
+                else:
+                    country_asn[As["country"]] = [As["asn"]]
                 tier1_asns.append(As)
                 calc_posi(As["rects"])
                 # if As["country"] not in country_count:
@@ -514,10 +525,10 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
                     As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
                     As["color"], As["dark_color"] = rand_color2(country_color[As["country"]])
-                # if As["country"] not in country_count:
-                #     country_count[As["country"]] = 1
-                # else:
-                #     country_count[As["country"]] += 1
+                if As["country"] in country_asn:
+                    country_asn[As["country"]].append(As["asn"])
+                else:
+                    country_asn[As["country"]] = [As["asn"]]
                 rects = calc_width22(As["posis"], jiange, asn_leafs.get(int(As["asn"]), []))  # 在这里把矩形分成小矩形 As["posis"], jiange
                 # print(rects)
                 for rx in rects:
@@ -527,7 +538,7 @@ def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大�
                 calc_posi([(x["rect"][0], x["rect"][-1]) for x in rects])
 
     tier2_asns = Interval_Merge(tier2_asns, group)
-    return tier1_asns, tier2_asns, asn_leafs, x_scale
+    return tier1_asns, tier2_asns, asn_leafs, x_scale, country_asn
 
 
 def get_relations():
@@ -536,3 +547,24 @@ def get_relations():
         relation_text = f.read()
     relations = eval(relation_text)
     return relations
+
+
+def get_prefix_tree():
+    rtree = radix.Radix()
+
+    with open("static/prefix_to_asn.txt") as f:
+        for line in f.readlines():
+            asn, pre, length = line.strip().split(" ")
+            if asn.isdigit() and len(asn) <= 14:
+                asn = int(asn)
+            elif "{" in asn and asn[1:-1].isdigit() and len(asn[1:-1]) <= 14:
+                asn = int(asn[1:-1])
+            else:
+                continue
+
+            pf = pre + "/" + length
+
+            rnode = rtree.add(pf)
+            rnode.data["asn"] = asn
+
+    return rtree

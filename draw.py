@@ -4,9 +4,8 @@ import os
 import random
 import math
 import json
-import requests
 
-from info import citys, get_info, get_relations
+from info import citys, get_info, get_relations, get_prefix_tree
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -28,6 +27,7 @@ du_list = ['%d° W' % i for i in p_list[:5]] + ["0° "] + ['%d° E' % i for i in
 
 lines = []
 relationship = get_relations()
+rtree = get_prefix_tree()
 
 
 def rand_color():
@@ -187,7 +187,7 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
     return rects, lgtss, tier2_rects, dots, yax_key, yax_value
 
 
-arg = {"group": 85, "jiange": 50}
+arg = {"group": 85, "jiange": 50, "country_asn": {}}
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -220,7 +220,7 @@ class JsonHandler(tornado.web.RequestHandler):
             arg["group"] = int(self.get_argument("group"))
         if "jiange" in self.request.arguments:
             arg["jiange"] = int(self.get_argument("jiange"))
-        tier1_asns, tier2_asns, asn_leafs, x_scae = get_info(jiange=arg["jiange"], group=arg["group"])
+        tier1_asns, tier2_asns, asn_leafs, x_scae, arg["country_asn"] = get_info(jiange=arg["jiange"], group=arg["group"])
         print(x_scae)
         rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs)
         # print(arg["group"], yax_value[-1])
@@ -232,8 +232,8 @@ class SearchHandler(tornado.web.RequestHandler):
     def get(self):
         if "ip" in self.request.arguments:
             ip = self.get_argument("ip")
-            r = requests.get("http://10.10.11.132:5778/?ip=" + ip)
-            self.write(r.content)
+            rnode = rtree.search_best(ip)
+            self.write(json.dumps({"asn": rnode.data["asn"], "prefix": rnode.prefix}))
 
 
 class RelationHandler(tornado.web.RequestHandler):
@@ -244,6 +244,14 @@ class RelationHandler(tornado.web.RequestHandler):
             self.write(json.dumps(relationship.get(asn, "null")))
 
 
+class CountryHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        if "code" in self.request.arguments:
+            code = self.get_argument("code")
+            self.write(json.dumps(arg["country_asn"].get(code, "null")))
+
+
 if __name__ == "__main__":
     # tornado.options.parse_command_line()
     application = tornado.web.Application(
@@ -252,6 +260,7 @@ if __name__ == "__main__":
             (r"/json", JsonHandler),
             (r"/search", SearchHandler),
             (r"/relation", RelationHandler),
+            (r"/country", CountryHandler),
             # (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/home/auto/bgpsim/web"})
         ],
         debug=True,
