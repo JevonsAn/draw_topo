@@ -5,15 +5,15 @@ import random
 import math
 import json
 
-from info import citys, get_info, get_relations, get_prefix_tree
+from info import citys, get_info, get_relations, get_prefix_tree, p_list
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
-x_scale = [638, 2032, 2541, 778, 476, 2639, 928, 607, 974, 1192, 267]  # [800, 4167, 3378, 1519, 1260, 3530, 2473, 1830, 2276, 2988, 700]
-x_width = [x / sum(x_scale) * 1200 for x in x_scale]
-x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
-p_list = [-180, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
+# x_scale = [638, 2032, 2541, 778, 476, 2639, 928, 607, 974, 1192, 267]  # [800, 4167, 3378, 1519, 1260, 3530, 2473, 1830, 2276, 2988, 700]
+# x_width = [x / sum(x_scale) * 1200 for x in x_scale]
+# x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
+# p_list = [-180, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
 du_list = ['%d° W' % i for i in p_list[:5]] + ["0° "] + ['%d° E' % i for i in p_list[6:]]
 
 # x_scale = [766, 1114, 4167, 3378, 1519, 1260, 3530, 2473, 1830, 2276, 2988, 1370]
@@ -77,7 +77,7 @@ def rand_color():
     return res, res2
 
 
-def calc_posi(lgt):
+def calc_posi(lgt, x_list, x_width):
     t = len(p_list) - 2
     for i in range(len(p_list) - 1):
         if p_list[i] <= lgt < p_list[i + 1]:
@@ -89,7 +89,7 @@ def calc_posi(lgt):
     return base + real_width
 
 
-def rect_posi(tier1_asns, tier2_asns, asn_leafs):
+def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
     rects = []
     lgtss = []
     # lines = []
@@ -124,17 +124,17 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
         thigh += high
         for rx in asn["rects"]:
             b = {x: y for x, y in a.items()}
-            b["xp"] = calc_posi(rx[0])
-            b["width"] = calc_posi(rx[1]) - b["xp"]
+            b["xp"] = calc_posi(rx[0], x_list, x_width)
+            b["width"] = calc_posi(rx[1], x_list, x_width) - b["xp"]
             rects.append(b)
 
         lgts = asn["posis"]
         for l in lgts:
-            lgtss.append({"xp": calc_posi(l), "yp": a["yp"], "width": 2,
+            lgtss.append({"xp": calc_posi(l, x_list, x_width), "yp": a["yp"], "width": 2,
                           "color": dark_color, "height": a["height"] - 3, "lgt": l})
 
         for l in asn_leafs[a["asn"]]:
-            pl = calc_posi(l[0])
+            pl = calc_posi(l[0], x_list, x_width)
             dots.append({"xp": "%.1f" % pl, "yp": thigh - 1.5, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
 
     # # print(rects, dots)
@@ -155,24 +155,24 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs):
             dark_color = asn["dark_color"]
             # print(len(asn["rects"]))
             b = {x: y for x, y in a.items()}
-            b["xp"] = calc_posi(asn["rect"][0])
-            b["width"] = calc_posi(asn["rect"][-1]) - b["xp"]
+            b["xp"] = calc_posi(asn["rect"][0], x_list, x_width)
+            b["width"] = calc_posi(asn["rect"][-1], x_list, x_width) - b["xp"]
             tier2_rects.append(b)
 
             lgts = asn["rect"]
             for l in lgts:
-                lgtss.append({"xp": calc_posi(l), "yp": a["yp"], "width": 2,
+                lgtss.append({"xp": calc_posi(l, x_list, x_width), "yp": a["yp"], "width": 2,
                               "color": dark_color, "height": a["height"] - 3, "lgt": l})
             for l in asn["dots"]:
-                pl = calc_posi(l[0])
+                pl = calc_posi(l[0], x_list, x_width)
                 dots.append(
                     {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
 
             if asn["max"]:
                 for x in asn["little"]:  # 画同自治域的小矩形
                     b = {x: y for x, y in a.items()}
-                    b["xp"] = calc_posi(x - 2)
-                    b["width"] = calc_posi(x + 2) - b["xp"]   # 小矩形宽4
+                    b["xp"] = calc_posi(x - 2, x_list, x_width)
+                    b["width"] = calc_posi(x + 2, x_list, x_width) - b["xp"]   # 小矩形宽4
                     tier2_rects.append(b)
 
         thigh += high
@@ -202,15 +202,8 @@ class MainHandler(tornado.web.RequestHandler):
             arg["jiange"] = int(self.get_argument("jiange"))
         # else:
         #     arg["jiange"] = 50
-        pos_to_name = {x_list[0]: "", x_list[-1]: ""}
-        for city in citys:
-            posi = calc_posi(citys[city][0])
-            pos_to_name[posi] = city
-            lines.append({"xp": posi})
-        x = list(sorted(pos_to_name.keys()))
 
-        du = [pos_to_name[m] for m in x]
-        self.render("topo.html", x_list=x_list, x_domain=du_list, x_list2=x, x_domain2=du)
+        self.render("topo.html")  # , x_list=x_list, x_domain=du_list, x_list2=x, x_domain2=du
 
 
 class JsonHandler(tornado.web.RequestHandler):
@@ -221,10 +214,22 @@ class JsonHandler(tornado.web.RequestHandler):
         if "jiange" in self.request.arguments:
             arg["jiange"] = int(self.get_argument("jiange"))
         tier1_asns, tier2_asns, asn_leafs, x_scae, arg["country_asn"] = get_info(jiange=arg["jiange"], group=arg["group"])
-        print(x_scae)
-        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs)
-        # print(arg["group"], yax_value[-1])
-        self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots, "yax": [yax_key, yax_value]}))
+        x_width = [x / sum(x_scae) * 1200 for x in x_scae]
+        x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
+
+        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width)
+
+        pos_to_name = {x_list[0]: "", x_list[-1]: ""}
+        for city in citys:
+            posi = calc_posi(citys[city][0], x_list, x_width)
+            pos_to_name[posi] = city
+            lines.append({"xp": posi})
+        x = list(sorted(pos_to_name.keys()))
+
+        du = [pos_to_name[m] for m in x]
+
+        self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
+                               "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]}))
 
 
 class SearchHandler(tornado.web.RequestHandler):

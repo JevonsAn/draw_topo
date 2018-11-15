@@ -123,77 +123,7 @@
 <script>
 	let svg = d3.select("svg#topo");
 	let fsvg = d3.select("svg#fix");
-	let x = d3.scaleOrdinal().range({{x_list}});
-	let xScale = x.domain({% raw x_domain%});
-
-	// x轴
-	let xAxis = fsvg.append('g')
-				   .attr('class', 'xAxisis')
-				   .attr('transform', `translate(0, 75)`)
-				   .call(d3.axisTop(xScale))
-		            .append("text")//添加坐标轴说明
-					.text("经度")
-					.attr("transform","translate(1350,0)")
-					.attr("fill","#000")
-					.attr("font-size", "20px")
-					.attr("dy","0em");
-
-	let x2 = d3.scaleOrdinal().range({{x_list2}});
-	let xScale2 = x2.domain({% raw x_domain2%});
-
-	// x轴
-	let xAxis2 = fsvg.append('g')
-				   .attr('class', 'xAxisis')
-				   .attr('transform', `translate(0, 50)`)
-				   .call(d3.axisTop(xScale2));
-                    // .append("text")//添加坐标轴说明
-					// .text("经度")
-					// .attr("transform","translate(1350,0)")
-					// .attr("fill","#000")
-					// .attr("font-size", "20px")
-					// .attr("dy","0em");
-	let ticks = xAxis2.selectAll("g.tick");
-	let dArray = [];
-	for (let i=0;i<ticks._groups[0].length;i++ ){
-	 	dArray.push(ticks._groups[0][i].textContent);
-	}
-
-	ticks.data(dArray)
-		.attr("id", d => d);
-
-	let xyt = fsvg.select("g#西雅图");
-	xyt.select("line").attr("y2", "-20");
-	xyt.select("text").attr("y", "-25");
-
-	let jjs = fsvg.select("g#旧金山");
-	jjs.select("line").attr("y2", "-20");
-	jjs.select("text").attr("y", "-40");
-
-	let nw = fsvg.select("g#纽约");
-	nw.select("line").attr("y2", "-20");
-	nw.select("text").attr("y", "-25");
-
-	let lsj = fsvg.select("g#洛杉矶");
-	lsj.select("text").html("&nbsp;&nbsp;&nbsp;洛杉矶");
-
-	let yhc = fsvg.select("g#盐湖城");
-	yhc.select("text").html("&nbsp;&nbsp;&nbsp;盐湖城");
-
-	let sh = fsvg.select("g#上海");
-	sh.append("text").attr("fill", "#000").attr("y", "-20").attr("dy", "0em").html("台北");
-	let amstd = fsvg.select("g#阿姆斯特丹");
-	amstd.select("text").attr("y", "-25");
-	amstd.select("line").attr("y2", "-22");
-	amstd.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("布鲁塞尔(比利时)");
-
-	let xg = fsvg.select("g#香港");
-	xg.select("text").attr("y", "-25");
-	xg.select("line").attr("y2", "-22");
-	xg.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("武汉");
-
-	let xdl = fsvg.select("g#新德里");
-	xdl.select("line").attr("y2", "-20");
-	xdl.select("text").attr("y", "-25");
+	
     clearSvg();
 	getjson(50, 85);
 
@@ -202,6 +132,85 @@ function getjson(jiange, group) {
     d3.json(urll, function (error, graph) {
 
         if (error) throw error;
+
+        let x_list = graph.xax[0];
+        let x_domain = graph.xax[1];
+        let x_list2 = graph.xax[2];
+        let x_domain2 = graph.xax[3];
+
+
+        let x = d3.scaleOrdinal().range(x_list);
+
+        let xScale = x.domain(x_domain);
+
+        // x轴
+        let xAxis = fsvg.append('g')
+                       .attr('class', 'xAxisis')
+                       .attr('transform', `translate(0, 75)`)
+                       .call(d3.axisTop(xScale))
+                        .append("text")//添加坐标轴说明
+                        .text("经度")
+                        .attr("transform","translate(1350,0)")
+                        .attr("fill","#000")
+                        .attr("font-size", "20px")
+                        .attr("dy","0em");
+
+        let x2 = d3.scaleOrdinal().range(x_list2);
+        let xScale2 = x2.domain(x_domain2);
+
+        // x轴
+        let xAxis2 = fsvg.append('g')
+                       .attr('class', 'xAxisis')
+                       .attr('transform', `translate(0, 50)`)
+                       .call(d3.axisTop(xScale2));
+                        // .append("text")//添加坐标轴说明
+                        // .text("经度")
+                        // .attr("transform","translate(1350,0)")
+                        // .attr("fill","#000")
+                        // .attr("font-size", "20px")
+                        // .attr("dy","0em");
+        let ticks = xAxis2.selectAll("g.tick");
+        let dArray = [];
+        for (let i=0;i<ticks._groups[0].length;i++ ){
+            dArray.push(ticks._groups[0][i].textContent);
+        }
+
+        ticks.data(dArray)
+            .attr("id", d => d);
+
+        let xyt = fsvg.select("g#西雅图");
+        xyt.select("line").attr("y2", "-20");
+        xyt.select("text").attr("y", "-25");
+
+        let jjs = fsvg.select("g#旧金山");
+        jjs.select("line").attr("y2", "-20");
+        jjs.select("text").attr("y", "-40");
+
+        let nw = fsvg.select("g#纽约");
+        nw.select("line").attr("y2", "-20");
+        nw.select("text").attr("y", "-25");
+
+        let lsj = fsvg.select("g#洛杉矶");
+        lsj.select("text").html("&nbsp;&nbsp;&nbsp;洛杉矶");
+
+        let yhc = fsvg.select("g#盐湖城");
+        yhc.select("text").html("&nbsp;&nbsp;&nbsp;盐湖城");
+
+        let sh = fsvg.select("g#上海");
+        sh.append("text").attr("fill", "#000").attr("y", "-20").attr("dy", "0em").html("台北");
+        let amstd = fsvg.select("g#阿姆斯特丹");
+        amstd.select("text").attr("y", "-25");
+        amstd.select("line").attr("y2", "-22");
+        amstd.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("布鲁塞尔(比利时)");
+
+        let xg = fsvg.select("g#香港");
+        xg.select("text").attr("y", "-25");
+        xg.select("line").attr("y2", "-22");
+        xg.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("武汉");
+
+        let xdl = fsvg.select("g#新德里");
+        xdl.select("line").attr("y2", "-20");
+        xdl.select("text").attr("y", "-25");
 
         let y = d3.scaleOrdinal().range(graph.yax[0]);
         let yScale = y.domain(graph.yax[1]);
@@ -407,6 +416,7 @@ function getjson(jiange, group) {
     });
 }
 function clearSvg() {
+    d3.selectAll(".xAxisis").remove();
     svg.select(".yAxisis").remove();
 
     let node = svg.selectAll(".tier1_rects");
