@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>自治域拓扑图</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="static/bootstrap.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+
+            <svg id="topo" width="1450" height="4000">
+
+            </svg>
+        </div>
+    </div>
+</body>
+<script src="static/jquery-3.3.1.min.js"></script>
+<script src="static/bootstrap.js"></script>
+<script src="static/d3.js"></script>
+<script src="static/d3-selection-multi.v1.js"></script>
+<script>
+    // let country_color = {
+    //     "US": "#87CEEB",
+    //     "BR": "#008000",
+    //     "RU": "#FFFF00",
+    //     "PL": "#800080",
+    //     "GB": "#FFC0CB",
+    //     "UA": "#DAA520",
+    //     "DE": "#808080",
+    //     "NL": "#0000FF",
+    //     "CA": "#B22222",
+    //     "FR": "#90EE90",
+    //     "IN": "#FF8C00",
+    //     "HK": "#FF0000",
+    //     "JP": "#D3D3D3",
+    // };
+    let country_color = [['', '#3D24C1'],
+        ['', '#3E1390'],
+        ['', '#5D35E8'],
+        ['', '#1D2AB6'],
+        ['', '#421DD2'],
+        ['', '#2813A1'],
+        ['', '#1301DD'],
+        ['', '#0E26AB'], ['', '#2B52CA'], ['', '#163B99'], ['', '#1F38C9'], ['', '#221597'], ['', '#0428C7'], ['', '#080895'], ['', '#4137D0'], ['', '#3C219E'], ['', '#1936C8'], ['', '#1E0E96'], ['', '#0B2AB9'], ['', '#1D0B87']];
+    let country_list = [];
+    let n = 0;
+    for (c of country_color){
+        n++;
+        country_list.push([c[0], c[1], n]);
+    }
+    let svg = d3.select("svg");
+    let node = svg.selectAll(".rects")
+                  .data(country_list)
+                .enter().append("g");
+
+    node.append("rect")
+        .attr("stroke", d => d[1])
+        .attr("stroke-width","0px")
+        .attr("fill", d => d[1])
+        // .attr("id", d => `as${d.asn}`)
+        .attr("x", 100)
+        .attr("y", function(d){
+            // console.log(d[2], d[2] * 50);
+            return d[2] * 50;
+        })
+        .attr("width", 100)
+        .attr("height", 40);
+
+</script>
+

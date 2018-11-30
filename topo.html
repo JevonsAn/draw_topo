@@ -627,9 +627,9 @@ function clearSvg() {
                 // alert(data);
                 let search_result = JSON.parse(data);
                 if (search_result){ //result 不是 null                    
-                    let providers = search_result.provider;
-                    let peers = search_result.peer;
-                    let customers = search_result.customer;
+                    let providers = search_result[0];
+                    let peers = search_result[1];
+                    let customers = search_result[2];
                     asn_highligter(d3.selectAll(`#as${content}`), "black");
                     relation_highligter(providers, customers, peers);
                 }
