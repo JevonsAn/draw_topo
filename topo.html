@@ -108,6 +108,7 @@
 <script src="static/bootstrap.js"></script>
 <script src="static/d3.js"></script>
 <script src="static/d3-selection-multi.v1.js"></script>
+<script src="static/pako.js"></script>
 <script>
     window.onscroll = function(){
         var t = document.documentElement.scrollTop || document.body.scrollTop;
@@ -121,6 +122,23 @@
     }
 </script>
 <script>
+    function Uint8ArrayToString(fileData) {
+        var dataString = "";
+        for (var i = 0; i < fileData.length; i++) {
+            dataString += String.fromCharCode(fileData[i]);
+        }
+        return dataString;
+    }
+    function myungzip(string) {
+        var strData = atob(string);
+        var charData = strData.split('').map(function (x) { return x.charCodeAt(0); });
+        var binData = new Uint8Array(charData);
+        var data = pako.ungzip(binData);
+        // var strData = String.fromCharCode.apply(null, new Uint16Array(data));
+        return Uint8ArrayToString(data);
+    }  
+</script>
+<script>
 	let svg = d3.select("svg#topo");
 	let fsvg = d3.select("svg#fix");
 	
@@ -129,9 +147,16 @@
 
 function getjson(jiange, group) {
     let urll = `json?jiange=${jiange}&group=${group}`
-    d3.json(urll, function (error, graph) {
+    
+    $.get(urll, {}).done(function (data) {
+        data = myungzip(data);
+        let graph = JSON.parse(data);
+    
+    // d3.json(urll, function (error, graph) {
 
-        if (error) throw error;
+    //     if (error) throw error;
+
+        
 
         let x_list = graph.xax[0];
         let x_domain = graph.xax[1];

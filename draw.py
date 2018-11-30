@@ -4,6 +4,9 @@ import os
 import random
 import math
 import json
+import base64
+from io import BytesIO
+import gzip
 
 from info import citys, get_info, get_relations, get_prefix_tree, p_list
 
@@ -190,6 +193,14 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
 arg = {"group": 85, "jiange": 50, "country_asn": {}}
 
 
+def zipData(content):
+    zbuf = BytesIO()
+    zfile = gzip.GzipFile(mode='wb', compresslevel=9, fileobj=zbuf)
+    zfile.write(content.encode())
+    zfile.close()
+    return base64.b64encode(zbuf.getvalue())
+
+
 class MainHandler(tornado.web.RequestHandler):
 
     def get(self):
@@ -228,8 +239,12 @@ class JsonHandler(tornado.web.RequestHandler):
 
         du = [pos_to_name[m] for m in x]
 
-        self.write(json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
-                               "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]}))
+        result = json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
+                             "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]})
+        print(len(result))
+        result = zipData(result)
+        print(len(result))
+        self.write(result)
 
 
 class SearchHandler(tornado.web.RequestHandler):
