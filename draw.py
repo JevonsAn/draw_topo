@@ -190,7 +190,7 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
     return rects, lgtss, tier2_rects, dots, yax_key, yax_value
 
 
-arg = {"group": 85, "jiange": 50, "country_asn": {}}
+arg = {"group": 85, "jiange": 50, "country_asn": {}, "results": ""}
 
 
 def zipData(content):
@@ -221,30 +221,35 @@ class JsonHandler(tornado.web.RequestHandler):
 
     def get(self):
         if "group" in self.request.arguments:
-            arg["group"] = int(self.get_argument("group"))
+            new_group = int(self.get_argument("group"))
         if "jiange" in self.request.arguments:
-            arg["jiange"] = int(self.get_argument("jiange"))
-        tier1_asns, tier2_asns, asn_leafs, x_scae, arg["country_asn"] = get_info(jiange=arg["jiange"], group=arg["group"])
-        x_width = [x / sum(x_scae) * 1200 for x in x_scae]
-        x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
+            new_jiange = int(self.get_argument("jiange"))
 
-        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width)
+        if (new_group, new_jiange) == (arg["group"], arg["jiange"]) and arg["results"]:
+        	self.write(arg["results"])
+        	return
+        else:
+        	arg["group"], arg["jiange"] = new_group, new_jiange
 
-        pos_to_name = {x_list[0]: "", x_list[-1]: ""}
-        for city in citys:
-            posi = calc_posi(citys[city][0], x_list, x_width)
-            pos_to_name[posi] = city
-            lines.append({"xp": posi})
-        x = list(sorted(pos_to_name.keys()))
+	        tier1_asns, tier2_asns, asn_leafs, x_scae, arg["country_asn"] = get_info(jiange=arg["jiange"], group=arg["group"])
+	        x_width = [x / sum(x_scae) * 1200 for x in x_scae]
+	        x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
 
-        du = [pos_to_name[m] for m in x]
+	        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width)
 
-        result = json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
-                             "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]})
-        print(len(result))
-        result = zipData(result)
-        print(len(result))
-        self.write(result)
+	        pos_to_name = {x_list[0]: "", x_list[-1]: ""}
+	        for city in citys:
+	            posi = calc_posi(citys[city][0], x_list, x_width)
+	            pos_to_name[posi] = city
+	            lines.append({"xp": posi})
+	        x = list(sorted(pos_to_name.keys()))
+
+	        du = [pos_to_name[m] for m in x]
+
+	        result = json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
+	                             "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]})
+	        arg["results"] = zipData(result)
+	        self.write(arg["results"])
 
 
 class SearchHandler(tornado.web.RequestHandler):
@@ -272,6 +277,14 @@ class CountryHandler(tornado.web.RequestHandler):
             self.write(json.dumps(arg["country_asn"].get(code, "null")))
 
 
+class OtherHandler(tornado.web.RequestHandler):
+    
+    def get(self):
+        self.write("")
+    
+    def post(self):
+        self.write("")
+
 if __name__ == "__main__":
     # tornado.options.parse_command_line()
     application = tornado.web.Application(
@@ -281,6 +294,7 @@ if __name__ == "__main__":
             (r"/search", SearchHandler),
             (r"/relation", RelationHandler),
             (r"/country", CountryHandler),
+            (r"^/.*$", OtherHandler),
             # (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/home/auto/bgpsim/web"})
         ],
         debug=True,
