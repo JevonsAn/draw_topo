@@ -229,27 +229,27 @@ class JsonHandler(tornado.web.RequestHandler):
         	self.write(arg["results"])
         	return
         else:
-        	arg["group"], arg["jiange"] = new_group, new_jiange
+            arg["group"], arg["jiange"] = new_group, new_jiange
+            tier1_asns, tier2_asns, asn_leafs, x_scae, arg["country_asn"] = get_info(jiange=arg["jiange"], group=arg["group"])
+            x_scae = [x ** 1.7 for x in x_scae]
+            x_width = [x / sum(x_scae) * 1200 for x in x_scae]
+            x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
 
-	        tier1_asns, tier2_asns, asn_leafs, x_scae, arg["country_asn"] = get_info(jiange=arg["jiange"], group=arg["group"])
-	        x_width = [x / sum(x_scae) * 1200 for x in x_scae]
-	        x_list = [100 + sum(x_width[:i]) for i in range(len(x_width) + 1)]
+            rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width)
 
-	        rects, lgts, tier2_rects, dots, yax_key, yax_value = rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width)
+            pos_to_name = {x_list[0]: "", x_list[-1]: ""}
+            for city in citys:
+                posi = calc_posi(citys[city][0], x_list, x_width)
+                pos_to_name[posi] = city
+                lines.append({"xp": posi})
+            x = list(sorted(pos_to_name.keys()))
 
-	        pos_to_name = {x_list[0]: "", x_list[-1]: ""}
-	        for city in citys:
-	            posi = calc_posi(citys[city][0], x_list, x_width)
-	            pos_to_name[posi] = city
-	            lines.append({"xp": posi})
-	        x = list(sorted(pos_to_name.keys()))
+            du = [pos_to_name[m] for m in x]
 
-	        du = [pos_to_name[m] for m in x]
-
-	        result = json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
-	                             "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]})
-	        arg["results"] = zipData(result)
-	        self.write(arg["results"])
+            result = json.dumps({"rects": rects, "lgts": lgts, "lines": lines, "rect2s": tier2_rects, "dots": dots,
+                                    "yax": [yax_key, yax_value], "xax": [x_list, du_list, x, du]})
+            arg["results"] = zipData(result)
+            self.write(arg["results"])
 
 
 class SearchHandler(tornado.web.RequestHandler):
