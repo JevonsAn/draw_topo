@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<title>自治域拓扑图</title>
+	<title>AS Topo Graph</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="static/bootstrap.css" rel="stylesheet">
 </head>
@@ -9,70 +9,70 @@
     <div class="container-fluid">
         <div class="row" style="margin-top: 15px;">
             <div class="col-md-2"  style="margin-left: 50px;">
-                <input type="text" class="form-control" id="searchIp" style="margin-left: 30px;" placeholder="自治域号、IP地址、国家代码">
+                <input type="text" class="form-control" id="searchIp" style="margin-left: 30px;" placeholder="ASN / IP / country code">
             </div>
             <div class="col-md-1" style="margin-left: 10px;">
                 <button id="searchBt" class="btn btn-info">
-                    搜索
+                    search
                 </button>
             </div>
 
             <div class="col-md-1"  style="margin-left: -50px;">
-                <input type="text" class="form-control" id="relation" style="margin-left: 30px;" placeholder="自治域号">
+                <input type="text" class="form-control" id="relation" style="margin-left: 30px;" placeholder="ASN">
             </div>
             <div class="col-md-1" style="margin-left: 10px;">
                 <button id="relationBt" class="btn btn-info">
-                    查看邻居
+                    search neighbor
                 </button>
             </div>
 
-            <div class="col-md-2"  style="margin-left: -30px;">
-                <input type="text" class="form-control" id="jiange" style="margin-left: 30px;" placeholder="分割矩形的间隔(默认50)">
+            <div class="col-md-2"  style="margin-left: 0px;">
+                <input type="text" class="form-control" id="jiange" style="margin-left: 30px;" placeholder="interval(default 50)">
             </div>
             <div class="col-md-2"  style="margin-left: -20px;">
-                <input type="text" class="form-control" id="group" style="margin-left: 30px;" placeholder="内部压缩的矩形数目(默认85)">
+                <input type="text" class="form-control" id="group" style="margin-left: 30px;" placeholder="rect nums in group (default 85)">
             </div>
             <div class="col-md-1" style="margin-left: 10px;">
                 <button id="freshBt" class="btn btn-info">
-                    重画
+                    redraw
                 </button>
             </div>
             
             <div class="col-md-1"  style="padding-left: 50px;margin-right: 50px;">
-                <button id="lineBt" class="btn btn-default">
-                    显示城市定位线
-                </button>
+                <!-- <button id="lineBt" class="btn btn-default">
+                    display lines of cities
+                </button> -->
             </div>
 
         </div>
         <!--<p style="color: red;font-size: 20px;">try</p>-->
         <div class="row">
             <div id="fixedLayer" style="position:fixed;top: 70px;background-color:rgba(256,256,256,0.7);"> <!--opacity:0.7;left: 40px;-->
-                <svg id="fix" width="1450" height="76">
+                <svg id="fix" width="1450" height="26">
 
                 </svg>
             </div>
             <div id="fixedLayer2" style="position:fixed;top: 110px;right: 20px;width:150px;height:100px;background-color:rgba(256,256,256,0.4);"> <!--opacity:0.7;left: 40px;-->
-                <h4 style="text-align: center;margin-bottom: 25px;">图例</h4>
+                <h4 style="text-align: center;margin-bottom: 25px;">legend</h4>
                 <!-- <br/> -->
-                <h5 style="text-align: center">自治域颜色</h5>
+                <h5 style="text-align: center">AS color</h5>
                 <div style=""></div>
-                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">美国（US）：</div>                
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #008000"></div><div style="">巴西（BR）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FFFF00"></div><div style="">俄罗斯（RU）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">波兰（PL）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #9400D3"></div><div style="">英国（GB）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #DAA520"></div><div style="">乌克兰（UA）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #808080"></div><div style="">德国（DE）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #4682B4"></div><div style="">荷兰（NL）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">加拿大（CA）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #90EE90"></div><div style="">法国（FR）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">香港（HK）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">中国（CN）：</div>
-                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #F7E3DF"></div><div style="">其他国家：</div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">USA (US)：</div>                
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #008000"></div><div style="">Brazil (BR)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FFFF00"></div><div style="">Russia (RU)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">Poland (PL)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #9400D3"></div><div style="">UK (GB)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #DAA520"></div><div style="">Ukraine (UA)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #808080"></div><div style="">Germany (DE)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #4682B4"></div><div style="">Netherlands (NL)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">Canada (CA)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #90EE90"></div><div style="">France (FR)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">Hong Kong (HK)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">China (CN)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #F7E3DF"></div><div style="">Other：</div>
 
                 <br/>
-                <h5 style="text-align: center">邻居关系</h5>
+                <h5 style="text-align: center">Neighbor relationship</h5>
                 <div style=""></div>
                 <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: black"></div><div style="">self</div>
                 <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: red"></div><div style="">provider</div>
@@ -171,71 +171,71 @@ function getjson(jiange, group) {
         // x轴
         let xAxis = fsvg.append('g')
                        .attr('class', 'xAxisis')
-                       .attr('transform', `translate(0, 75)`)
+                       .attr('transform', `translate(0, 25)`)
                        .call(d3.axisTop(xScale))
-                        .append("text")//添加坐标轴说明
-                        .text("经度")
-                        .attr("transform","translate(1350,0)")
-                        .attr("fill","#000")
-                        .attr("font-size", "20px")
-                        .attr("dy","0em");
-
-        let x2 = d3.scaleOrdinal().range(x_list2);
-        let xScale2 = x2.domain(x_domain2);
-
-        // x轴
-        let xAxis2 = fsvg.append('g')
-                       .attr('class', 'xAxisis')
-                       .attr('transform', `translate(0, 50)`)
-                       .call(d3.axisTop(xScale2));
                         // .append("text")//添加坐标轴说明
-                        // .text("经度")
+                        // // .text("longitude")
                         // .attr("transform","translate(1350,0)")
                         // .attr("fill","#000")
                         // .attr("font-size", "20px")
                         // .attr("dy","0em");
-        let ticks = xAxis2.selectAll("g.tick");
-        let dArray = [];
-        for (let i=0;i<ticks._groups[0].length;i++ ){
-            dArray.push(ticks._groups[0][i].textContent);
-        }
 
-        ticks.data(dArray)
-            .attr("id", d => d);
+        // let x2 = d3.scaleOrdinal().range(x_list2);
+        // let xScale2 = x2.domain(x_domain2);
 
-        let xyt = fsvg.select("g#西雅图");
-        xyt.select("line").attr("y2", "-20");
-        xyt.select("text").attr("y", "-25");
+        // // x轴
+        // let xAxis2 = fsvg.append('g')
+        //                .attr('class', 'xAxisis')
+        //                .attr('transform', `translate(0, 50)`)
+        //                .call(d3.axisTop(xScale2));
+        //                 // .append("text")//添加坐标轴说明
+        //                 // .text("经度")
+        //                 // .attr("transform","translate(1350,0)")
+        //                 // .attr("fill","#000")
+        //                 // .attr("font-size", "20px")
+        //                 // .attr("dy","0em");
+        // let ticks = xAxis2.selectAll("g.tick");
+        // let dArray = [];
+        // for (let i=0;i<ticks._groups[0].length;i++ ){
+        //     dArray.push(ticks._groups[0][i].textContent);
+        // }
 
-        let jjs = fsvg.select("g#旧金山");
-        jjs.select("line").attr("y2", "-20");
-        jjs.select("text").attr("y", "-40");
+        // ticks.data(dArray)
+        //     .attr("id", d => d);
 
-        let nw = fsvg.select("g#纽约");
-        nw.select("line").attr("y2", "-20");
-        nw.select("text").attr("y", "-25");
+        // let xyt = fsvg.select("g#西雅图");
+        // xyt.select("line").attr("y2", "-20");
+        // xyt.select("text").attr("y", "-25");
 
-        let lsj = fsvg.select("g#洛杉矶");
-        lsj.select("text").html("&nbsp;&nbsp;&nbsp;洛杉矶");
+        // let jjs = fsvg.select("g#旧金山");
+        // jjs.select("line").attr("y2", "-20");
+        // jjs.select("text").attr("y", "-40");
 
-        let yhc = fsvg.select("g#盐湖城");
-        yhc.select("text").html("&nbsp;&nbsp;&nbsp;盐湖城");
+        // let nw = fsvg.select("g#纽约");
+        // nw.select("line").attr("y2", "-20");
+        // nw.select("text").attr("y", "-25");
 
-        let sh = fsvg.select("g#上海");
-        sh.append("text").attr("fill", "#000").attr("y", "-20").attr("dy", "0em").html("台北");
-        let amstd = fsvg.select("g#阿姆斯特丹");
-        amstd.select("text").attr("y", "-25");
-        amstd.select("line").attr("y2", "-22");
-        amstd.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("布鲁塞尔(比利时)");
+        // let lsj = fsvg.select("g#洛杉矶");
+        // lsj.select("text").html("&nbsp;&nbsp;&nbsp;洛杉矶");
 
-        let xg = fsvg.select("g#香港");
-        xg.select("text").attr("y", "-25");
-        xg.select("line").attr("y2", "-22");
-        xg.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("武汉");
+        // let yhc = fsvg.select("g#盐湖城");
+        // yhc.select("text").html("&nbsp;&nbsp;&nbsp;盐湖城");
 
-        let xdl = fsvg.select("g#新德里");
-        xdl.select("line").attr("y2", "-20");
-        xdl.select("text").attr("y", "-25");
+        // let sh = fsvg.select("g#上海");
+        // sh.append("text").attr("fill", "#000").attr("y", "-20").attr("dy", "0em").html("台北");
+        // let amstd = fsvg.select("g#阿姆斯特丹");
+        // amstd.select("text").attr("y", "-25");
+        // amstd.select("line").attr("y2", "-22");
+        // amstd.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("布鲁塞尔(比利时)");
+
+        // let xg = fsvg.select("g#香港");
+        // xg.select("text").attr("y", "-25");
+        // xg.select("line").attr("y2", "-22");
+        // xg.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("武汉");
+
+        // let xdl = fsvg.select("g#新德里");
+        // xdl.select("line").attr("y2", "-20");
+        // xdl.select("text").attr("y", "-25");
 
         let y = d3.scaleOrdinal().range(graph.yax[0]);
         let yScale = y.domain(graph.yax[1]);
@@ -247,7 +247,7 @@ function getjson(jiange, group) {
         yAxis.tickPadding(5);
         svg.append('g')
             .attr('class', 'yAxisis')
-            .attr('transform', `translate(99, 100)`)
+            .attr('transform', `translate(99, 50)`)
             .call(yAxis);
 
         // console.log(graph);
@@ -279,10 +279,10 @@ function getjson(jiange, group) {
 
         //鼠标悬停文字
         node.append("title")
-            .text(d => `自治域号：${d.asn}
-                        自治域名称：${d.name.split(',')[1]}
-                        所在国家：${d.name.split(',')[2]}
-                        customer数量：${d.scale}`);
+            .text(d => `ASN：${d.asn}
+                        AS name：${d.name.split(',')[1]}
+                        country：${d.name.split(',')[2]}
+                        num of customers：${d.scale}`);
 
         // Tier2矩形
         let tier2_node = svg.selectAll(".tier2_rects")
@@ -311,10 +311,10 @@ function getjson(jiange, group) {
         //     .on("end", dragended));
 
         tier2_node.append("title")
-            .text(d => `自治域号：${d.asn}
-                        自治域名称：${d.name.split(',')[1]}
-                        所在国家：${d.name.split(',')[2]}
-                        customer数量：${d.scale}`);
+            .text(d => `ASN：${d.asn}
+                        AS name：${d.name.split(',')[1]}
+                        country：${d.name.split(',')[2]}
+                        nums of customer：${d.scale}`);
 
         //Tier1和Tier2的位置信息竖条
         let node2 = svg.append("g").attr("class", "tier1_lgt")
@@ -360,12 +360,12 @@ function getjson(jiange, group) {
         dots.append("title")
             .text(function (d) {
                 let sp = d.other.split("|"); // asn, name, cnt, lgt, path
-                return `自治域号：${sp[0]}
-                        所在国家：${sp[2]}
-                        自治域名称：${sp[1]}
-                        经度：${d.lgt}
+                return `ASN：${sp[0]}
+                        country：${sp[2]}
+                        AS name：${sp[1]}
+                        longitude：${d.lgt}
                         ASpath：${sp[4]}
-                        声明的前缀：${sp[5]}`;
+                        prefix：${sp[5]}`;
             });
 
         // Tier1矩形上的文字
@@ -473,11 +473,11 @@ function clearSvg() {
         ct2 = $("#group").val();
         let int_match = /^[1-9]\d*$/;
         if (ct1 != "" && !int_match.test(ct1)){
-            alert("输入的值只能是整数");
+            alert("must be int");
             return;
         }
         else if (ct2 != "" && !int_match.test(ct2)){
-            alert("输入的值只能是整数");
+            alert("must be int");
             return;
         }
         else {
@@ -544,12 +544,12 @@ function clearSvg() {
 		if (btFlag === 0){
 			lines.style("opacity", 0);
 			btFlag = 1;
-			$("#lineBt").html("显示城市定位线");
+			$("#lineBt").html("display lines of cities");
 		}
 		else {
 		    lines.style("opacity", 10);
 			btFlag = 0;
-			$("#lineBt").html("隐藏城市定位线");
+			$("#lineBt").html("hide lines of cities");
 		}
     });
 
@@ -565,7 +565,7 @@ function clearSvg() {
         let ip_match = /^(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))$/;
 
         if (!content){
-            alert("请输入查询内容!");
+            alert("please input something!");
         }
         else if (int_match.test(content)){  //输入的是整数，认为是asn
             let target = d3.selectAll(`#as${content}`);
@@ -575,7 +575,7 @@ function clearSvg() {
                 // console.log(last);           
             }
             else{
-                alert("未查询到该自治域!");
+                alert("no this AS!");
             }
         }
         else if (ip_match.test(content)){  //输入的是ip地址
@@ -591,17 +591,17 @@ function clearSvg() {
                     // console.log(target);
                     if (target._groups[0].length){
                         asn_highligter(target, "black");
-                        alert(`自治域为${asn}, 前缀为${search_result.prefix}`);
+                        alert(`ASN is ${asn}, prefix is ${search_result.prefix}`);
                     }
                     else{
-                        alert(`自治域为${asn},未在图中查询到该自治域!`);
+                        alert(`ASN is ${asn}, there isn't the AS in the graph!`);
                     }
                 }
                 else{
-                    alert("未查询到该ip对应的自治域!");
+                    alert("no this AS!");
                 }
             }).fail(function (xhr, status) {
-                alert("查询失败!");
+                alert("fail!");
             });
             
         }
@@ -623,14 +623,14 @@ function clearSvg() {
                     }                   
                 }
                 else{
-                    alert("未查询到该ip对应的自治域!");
+                    alert("no this AS!");
                 }
             }).fail(function (xhr, status) {
-                alert("查询失败!");
+                alert("fail!");
             });
         }
         else{
-            alert("不支持的查询格式");
+            alert("wrong input format");
         }       
 
     });
@@ -643,7 +643,7 @@ function clearSvg() {
         last = [];        
 
         if (!content){
-            alert("请输入查询内容!");
+            alert("please input something!");
         }
         else if (int_match.test(content)){  //输入的是整数，认为是asn            
             $.get("relation", {
@@ -659,14 +659,14 @@ function clearSvg() {
                     relation_highligter(providers, customers, peers);
                 }
                 else{
-                    alert("未查询到该自治域!");
+                    alert("no this AS!");
                 }
             }).fail(function (xhr, status) {
-                alert("查询失败!");
+                alert("fail!");
             });            
         }
         else{
-            alert("请输入整数");
+            alert("must be int");
         }       
 
     });

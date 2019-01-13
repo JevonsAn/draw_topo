@@ -2,109 +2,6 @@ import math
 import random
 import radix
 
-citys = {
-    "北京": [116.39723, 39.9075],
-    "纽约": [
-        -75.29128,
-        43.10535
-    ],
-    "洛杉矶": [
-        -118.15,
-        34.04
-    ],
-    "夏威夷": [
-        -155.33,
-        19.46
-    ],
-    "伦敦": [
-        0.10,
-        51.30
-    ],
-    "莫斯科": [
-        37.35,
-        55.45
-    ],
-    "新德里": [
-        77.13,
-        28.37
-
-    ],
-    "东京": [
-        139.46,
-        35.42
-    ],
-    "旧金山": [
-        -122.25,
-        37.46
-    ],
-    "西雅图": [
-        -122.19,
-        47.36
-    ],
-    "圣保罗": [
-        -46.38,
-        -23.33
-    ],
-    "新加坡": [
-        103.45,
-        1.22
-    ],
-    "上海": [
-        121.27,
-        31.14
-    ],
-    "悉尼": [
-        151.17,
-        -33.55
-    ],
-    "丹佛": [
-        -104.59,
-        39.43
-    ],
-    "芝加哥": [
-        -87,
-        41.51
-    ],
-    "阿姆斯特丹": [
-        4.52,
-        52.21
-    ],
-    "华沙": [
-        21,
-        52.15
-    ],
-    "柏林": [
-        13.2,
-        52.31
-    ],
-    "香港": [
-        114,
-        22.17
-    ],
-    "休斯顿": [
-        -95.23,
-        29.6
-    ],
-    "多伦多": [
-        -79.33,
-        43.6
-    ],
-    "波士顿": [
-        -71,
-        42.29
-    ],
-    "盐湖城": [
-        -111.89,
-        40.7
-    ],
-    "孟买": [
-        72.8,
-        18.95
-    ],
-
-
-}
-
 p_list = [-180, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150, 180]
 
 
@@ -289,7 +186,6 @@ def calc_width(l, jiange):
 
 
 def calc_width22(l, jiange, leafs):
-    # 寻找差别最大点作为起点
     max_wid = 0
     max_index = 0
     for i in range(len(l) - 1):
@@ -308,7 +204,6 @@ def calc_width22(l, jiange, leafs):
         max_index = 0
     # print(l, max_index, max_wid)
 
-    # 根据间隔分成小区间
     rects = []
     sub = [l[max_index]]
     for i in range(0, len(l) - 1):
@@ -328,7 +223,6 @@ def calc_width22(l, jiange, leafs):
     rects.append(sub)
     # print(rects)
 
-    # 整理最大区间、筛出小区间
     new_rects = []
     little = []
     max_len = 1
@@ -360,9 +254,6 @@ def calc_width22(l, jiange, leafs):
                 max_len = len(r)
                 max_index = len(new_rects) - 1
 
-    # print(new_rects)
-    # print(set([int(x[0]) for x in leafs]))
-    # return
     new_rects.sort(key=lambda x: x["rect"])
     leafs.sort(key=lambda x: x[0])
     if len(new_rects) == 0:
@@ -409,7 +300,6 @@ def calc_width22(l, jiange, leafs):
 def Interval_Merge(itv_list, group):
     result_list = []
     sub_list = [sorted(itv_list[x: x + group], key=lambda As: As['rect']) for x in range(0, len(itv_list), group)]
-    # print(sub_list)
     for l in sub_list:
         slist = []
         lset = [1] * len(l)
@@ -443,7 +333,7 @@ country_color = {
 other_color = "#D3D3D3"
 
 
-def get_info(jiange=50, group=85):   # jiange = 50 空白多少用来分割大矩形
+def get_info(jiange=50, group=85):   # jiange = 50
     x_scale = [0] * (len(p_list) - 1)
     country_asn = dict()
 
