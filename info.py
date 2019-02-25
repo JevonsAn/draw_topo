@@ -361,7 +361,7 @@ def get_info(jiange=50, group=85):   # jiange = 50
 
     asn_leafs = dict()
     # 262589|265315|BINDNET RJ|BR|-43.0|-22.9028|(262589, 262788, 265315)|['168.121.176.0/24', '168.121.177.0/24', '168.121.178.0/24', '168.121.179.0/24']
-    with open("static/leafs.txt", encoding="utf-8") as f:
+    with open("txt/leafs.txt", encoding="utf-8") as f:
         for line in f.readlines():
             sp = line.strip().split("|")
             pvd = int(sp[0])
@@ -379,7 +379,7 @@ def get_info(jiange=50, group=85):   # jiange = 50
                 asn_leafs[pvd].append((lgt, other))
 
     tier1_asns = []
-    with open("static/tier1_info.txt") as f:
+    with open("txt/tier1_info.txt") as f:
         for line in f.readlines():
             sp = line.strip().split("|")
             As = {}
@@ -404,7 +404,7 @@ def get_info(jiange=50, group=85):   # jiange = 50
                 #     country_count[As["country"]] += 1
 
     tier2_asns = []
-    with open("static/tier2_info.txt") as f:
+    with open("txt/tier2_info.txt") as f:
         for line in f.readlines():
             sp = line.strip().split("|")
             if len(sp) == 7:
@@ -433,7 +433,7 @@ def get_info(jiange=50, group=85):   # jiange = 50
 
 def get_relations():
     relation_text = ""
-    with open("static/get_relations.txt") as f:
+    with open("txt/get_relations.txt") as f:
         relation_text = f.read()
     relations = eval(relation_text)
     return relations
@@ -442,7 +442,7 @@ def get_relations():
 def get_prefix_tree():
     rtree = radix.Radix()
 
-    with open("static/prefix_to_asn.txt") as f:
+    with open("txt/prefix_to_asn.txt") as f:
         for line in f.readlines():
             asn, pre, length = line.strip().split(" ")
             if asn.isdigit() and len(asn) <= 14:

@@ -3,7 +3,9 @@
 <head>
 	<title>AS Topo Graph</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="static/bootstrap.css" rel="stylesheet">
+    <link rel="shortcut icon" href="static/ico/favicon.ico" />
+    <link rel="bookmark"href="static/ico/favicon.ico" />
+	<link href="static/cj/bootstrap.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">
@@ -104,11 +106,11 @@
         -webkit-animation: twinkling 1s infinite ease-in-out;
     }
 </style>
-<script src="static/jquery-3.3.1.min.js"></script>
-<script src="static/bootstrap.js"></script>
-<script src="static/d3.js"></script>
-<script src="static/d3-selection-multi.v1.js"></script>
-<script src="static/pako.js"></script>
+<script src="static/cj/jquery-3.3.1.min.js"></script>
+<script src="static/cj/bootstrap.js"></script>
+<script src="static/cj/d3.js"></script>
+<script src="static/cj/d3-selection-multi.v1.js"></script>
+<script src="static/cj/pako.js"></script>
 <script>
     window.onscroll = function(){
         var t = document.documentElement.scrollTop || document.body.scrollTop;
@@ -652,8 +654,8 @@ function clearSvg() {
                 // alert(data);
                 let search_result = JSON.parse(data);
                 if (search_result){ //result 不是 null                    
-                    let providers = search_result[0];
-                    let peers = search_result[1];
+                    let providers = search_result[1];
+                    let peers = search_result[0];
                     let customers = search_result[2];
                     asn_highligter(d3.selectAll(`#as${content}`), "black");
                     relation_highligter(providers, customers, peers);
