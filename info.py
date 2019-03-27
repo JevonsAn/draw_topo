@@ -185,7 +185,7 @@ def calc_width(l, jiange):
     return new_rects
 
 
-def calc_width22(l, jiange, leafs):
+def calc_width22(l, jiange, leafs, prefixs):
     max_wid = 0
     max_index = 0
     for i in range(len(l) - 1):
@@ -240,16 +240,16 @@ def calc_width22(l, jiange, leafs):
                 else:
                     negative.append(x)
             positive.append(180)
-            new_rects.append({"rect": positive, "max": False, "dots": []})
+            new_rects.append({"rect": positive, "max": False, "dots": [], "prefixs": []})
             if len(positive) > max_len:
                 max_len = len(positive)
                 max_index = len(new_rects) - 1
-            new_rects.append({"rect": negative, "max": False, "dots": []})
+            new_rects.append({"rect": negative, "max": False, "dots": [], "prefixs": []})
             if len(negative) > max_len:
                 max_len = len(negative)
                 max_index = len(new_rects) - 1
         else:
-            new_rects.append({"rect": r, "max": False, "dots": []})
+            new_rects.append({"rect": r, "max": False, "dots": [], "prefixs": []})
             if len(r) > max_len:
                 max_len = len(r)
                 max_index = len(new_rects) - 1
@@ -291,8 +291,46 @@ def calc_width22(l, jiange, leafs):
                 else:
                     new_rects[now_index + 1]["dots"].append(leafset)
                     now_index += 1
+
         new_rects[max_index]["max"] = True
         new_rects[max_index]["little"] = little
+
+    new_rects.sort(key=lambda x: x["rect"])
+    prefixs.sort(key=lambda x: float(x[0]))
+    # print(prefixs)
+    if len(new_rects) == 1:
+        new_rects[0]["prefixs"] = prefixs
+    else:
+        now_index = 0
+        for pre in prefixs:
+            if now_index >= len(new_rects) - 1:
+                new_rects[now_index]["prefixs"].append(pre)
+                continue
+
+            pos = float(pre[0])
+            left_end = new_rects[now_index]["rect"][-1]
+            right_start = new_rects[now_index + 1]["rect"][0]
+
+            if pos <= left_end:
+                new_rects[now_index]["prefixs"].append(pre)
+            elif pos >= right_start:
+                while True:
+                    if pos >= new_rects[now_index + 1]["rect"][0]:
+                        now_index += 1
+                        if now_index + 1 >= len(new_rects):
+                            break
+                    else:
+                        break
+                if now_index >= len(new_rects):
+                    new_rects[-1]["prefixs"].append(pre)
+                else:
+                    new_rects[now_index]["prefixs"].append(pre)
+            else:
+                if pos - left_end < right_start - pos:
+                    new_rects[now_index]["prefixs"].append(pre)
+                else:
+                    new_rects[now_index + 1]["prefixs"].append(pre)
+                    now_index += 1
     # print(new_rects)
     return new_rects
 
@@ -333,7 +371,25 @@ country_color = {
 other_color = "#D3D3D3"
 
 
+def get_asn_prefix():
+    relation_text = ""
+    with open("txt/asn_prefix_location4.txt") as f:
+        relation_text = f.read()
+    relations = eval(relation_text)
+    asn_posi = {}
+    for k, v in relations.items():
+        asn, posi = k.split('_')
+        asn = int(asn)
+        if asn in asn_posi:
+            asn_posi[asn].append((posi, v))
+        else:
+            asn_posi[asn] = [(posi, v)]
+    return asn_posi
+
+
 def get_info(jiange=50, group=85):   # jiange = 50
+    asn_prefixs = get_asn_prefix()
+
     x_scale = [0] * (len(p_list) - 1)
     country_asn = dict()
 
@@ -387,6 +443,7 @@ def get_info(jiange=50, group=85):   # jiange = 50
                 As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp[:-1]
                 As["posis"] = eval(As["posis"])
                 As["rects"] = calc_width(As["posis"], jiange)
+                As["prefixs"] = asn_prefixs[int(As["asn"])]
                 if As["country"] not in country_color:
                     As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
@@ -419,7 +476,7 @@ def get_info(jiange=50, group=85):   # jiange = 50
                     country_asn[As["country"]].append(As["asn"])
                 else:
                     country_asn[As["country"]] = [As["asn"]]
-                rects = calc_width22(As["posis"], jiange, asn_leafs.get(int(As["asn"]), []))  # 在这里把矩形分成小矩形 As["posis"], jiange
+                rects = calc_width22(As["posis"], jiange, asn_leafs.get(int(As["asn"]), []), asn_prefixs.get(int(As["asn"]), []))  # 在这里把矩形分成小矩形 As["posis"], jiange
                 # print(rects)
                 for rx in rects:
                     b = {x: y for x, y in As.items() if x != "posis"}
@@ -458,3 +515,10 @@ def get_prefix_tree():
             rnode.data["asn"] = asn
 
     return rtree
+
+
+if __name__ == '__main__':
+    with open("txt/asn_prefix_location.txt", "r") as f:
+        asns = eval(f.read())
+        print(len(asns[3356]))
+        print(asns[3356][0])

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<title>AS Topo Graph</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="static/ico/favicon.ico" />
+    <link rel="bookmark"href="static/ico/favicon.ico" />
+	<link href="static/cj/bootstrap.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row" style="margin-top: 15px;">
+            <div class="col-md-2"  style="margin-left: 50px;">
+                <input type="text" class="form-control" id="searchIp" style="margin-left: 30px;" placeholder="ASN / IP / country code">
+            </div>
+            <div class="col-md-1" style="margin-left: 10px;">
+                <button id="searchBt" class="btn btn-info">
+                    search
+                </button>
+            </div>
+
+            <div class="col-md-1"  style="margin-left: -50px;">
+                <input type="text" class="form-control" id="relation" style="margin-left: 30px;" placeholder="ASN">
+            </div>
+            <div class="col-md-1" style="margin-left: 10px;">
+                <button id="relationBt" class="btn btn-info">
+                    search neighbor
+                </button>
+            </div>
+
+            <div class="col-md-2"  style="margin-left: 0px;">
+                <input type="text" class="form-control" id="jiange" style="margin-left: 30px;" placeholder="interval(default 50)">
+            </div>
+            <div class="col-md-2"  style="margin-left: -20px;">
+                <input type="text" class="form-control" id="group" style="margin-left: 30px;" placeholder="rect nums in group (default 85)">
+            </div>
+            <div class="col-md-1" style="margin-left: 10px;">
+                <button id="freshBt" class="btn btn-info">
+                    redraw
+                </button>
+            </div>
+            
+            <div class="col-md-1"  style="padding-left: 50px;margin-right: 50px;">
+                <!-- <button id="lineBt" class="btn btn-default">
+                    display lines of cities
+                </button> -->
+            </div>
+
+        </div>
+        <!--<p style="color: red;font-size: 20px;">try</p>-->
+        <div class="row">
+            <div id="fixedLayer" style="position:fixed;top: 70px;background-color:rgba(256,256,256,0.7);"> <!--opacity:0.7;left: 40px;-->
+                <svg id="fix" width="1450" height="26">
+
+                </svg>
+            </div>
+            <div id="fixedLayer2" style="position:fixed;top: 110px;right: 20px;width:150px;height:100px;background-color:rgba(256,256,256,0.4);"> <!--opacity:0.7;left: 40px;-->
+                <h4 style="text-align: center;margin-bottom: 25px;">legend</h4>
+                <!-- <br/> -->
+                <h5 style="text-align: center">AS color</h5>
+                <div style=""></div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: #87CEEB"></div><div style="">USA (US)：</div>                
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #008000"></div><div style="">Brazil (BR)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FFFF00"></div><div style="">Russia (RU)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">Poland (PL)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #9400D3"></div><div style="">UK (GB)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #DAA520"></div><div style="">Ukraine (UA)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #808080"></div><div style="">Germany (DE)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #4682B4"></div><div style="">Netherlands (NL)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #B22222"></div><div style="">Canada (CA)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #90EE90"></div><div style="">France (FR)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">Hong Kong (HK)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #FF0000"></div><div style="">China (CN)：</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: #F7E3DF"></div><div style="">Other：</div>
+
+                <br/>
+                <h5 style="text-align: center">Neighbor relationship</h5>
+                <div style=""></div>
+                <div style="position:fixed;right: 10px; width:50px;height:20px;background-color: black"></div><div style="">self</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: red"></div><div style="">provider</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: blue"></div><div style="">peer</div>
+                <div style="position:fixed;right: 10px;width:50px;height:20px;background-color: green"></div><div style="">customer</div>
+            </div>
+            <svg id="topo" width="1450" height="2500">
+
+            </svg>
+        </div>
+    </div>
+</body>
+<style>
+    .word {
+        text-shadow: 1px 0 0 #EEE, 0 1px 0 #EEE,
+        0 -1px 0 #EEE, -1px 0 0 #EEE,
+        1px 0 1px #EEE, 0 1px 1px #EEE,
+        0 -1px 1px #EEE, -1px 0 1px #EEE;
+    }
+    @-webkit-keyframes twinkling{ /*透明度由0到1*/
+        0%{
+            opacity:0; /*透明度为0*/
+        }
+        100%{
+            opacity:1; /*透明度为1*/
+        }
+    }
+    .twink {
+        -webkit-animation: twinkling 1s infinite ease-in-out;
+    }
+</style>
+<script src="static/cj/jquery-3.3.1.min.js"></script>
+<script src="static/cj/bootstrap.js"></script>
+<script src="static/cj/d3.js"></script>
+<script src="static/cj/d3-selection-multi.v1.js"></script>
+<script src="static/cj/pako.js"></script>
+<script>
+    window.onscroll = function(){
+        var t = document.documentElement.scrollTop || document.body.scrollTop;
+        var top_div = document.getElementById("fix");
+        if(t >= 100){
+            top_div.style = "position:fixed;top:10px;background-color:rgba(256,256,256,0.7);";
+        }
+        else{
+            top_div.style = "position:fixed;top:70px;background-color:rgba(256,256,256,0);";
+        }
+    }
+</script>
+<script>
+    function Uint8ArrayToString(fileData) {
+        var dataString = "";
+        for (var i = 0; i < fileData.length; i++) {
+            dataString += String.fromCharCode(fileData[i]);
+        }
+        return dataString;
+    }
+    function myungzip(string) {
+        var strData = atob(string);
+        var charData = strData.split('').map(function (x) { return x.charCodeAt(0); });
+        var binData = new Uint8Array(charData);
+        var data = pako.ungzip(binData);
+        // var strData = String.fromCharCode.apply(null, new Uint16Array(data));
+        return Uint8ArrayToString(data);
+    }  
+</script>
+<script>
+	let svg = d3.select("svg#topo");
+	let fsvg = d3.select("svg#fix");
+	
+    clearSvg();
+	getjson(50, 85);
+
+function getjson(jiange, group) {
+    let urll = `json?jiange=${jiange}&group=${group}`
+    
+    $.get(urll, {}).done(function (data) {
+        data = myungzip(data);
+        let graph = JSON.parse(data);
+    
+    // d3.json(urll, function (error, graph) {
+
+    //     if (error) throw error;
+
+        
+
+        let x_list = graph.xax[0];
+        let x_domain = graph.xax[1];
+        let x_list2 = graph.xax[2];
+        let x_domain2 = graph.xax[3];
+
+
+        let x = d3.scaleOrdinal().range(x_list);
+
+        let xScale = x.domain(x_domain);
+
+        // x轴
+        let xAxis = fsvg.append('g')
+                       .attr('class', 'xAxisis')
+                       .attr('transform', `translate(0, 25)`)
+                       .call(d3.axisTop(xScale))
+                        // .append("text")//添加坐标轴说明
+                        // // .text("longitude")
+                        // .attr("transform","translate(1350,0)")
+                        // .attr("fill","#000")
+                        // .attr("font-size", "20px")
+                        // .attr("dy","0em");
+
+        // let x2 = d3.scaleOrdinal().range(x_list2);
+        // let xScale2 = x2.domain(x_domain2);
+
+        // // x轴
+        // let xAxis2 = fsvg.append('g')
+        //                .attr('class', 'xAxisis')
+        //                .attr('transform', `translate(0, 50)`)
+        //                .call(d3.axisTop(xScale2));
+        //                 // .append("text")//添加坐标轴说明
+        //                 // .text("经度")
+        //                 // .attr("transform","translate(1350,0)")
+        //                 // .attr("fill","#000")
+        //                 // .attr("font-size", "20px")
+        //                 // .attr("dy","0em");
+        // let ticks = xAxis2.selectAll("g.tick");
+        // let dArray = [];
+        // for (let i=0;i<ticks._groups[0].length;i++ ){
+        //     dArray.push(ticks._groups[0][i].textContent);
+        // }
+
+        // ticks.data(dArray)
+        //     .attr("id", d => d);
+
+        // let xyt = fsvg.select("g#西雅图");
+        // xyt.select("line").attr("y2", "-20");
+        // xyt.select("text").attr("y", "-25");
+
+        // let jjs = fsvg.select("g#旧金山");
+        // jjs.select("line").attr("y2", "-20");
+        // jjs.select("text").attr("y", "-40");
+
+        // let nw = fsvg.select("g#纽约");
+        // nw.select("line").attr("y2", "-20");
+        // nw.select("text").attr("y", "-25");
+
+        // let lsj = fsvg.select("g#洛杉矶");
+        // lsj.select("text").html("&nbsp;&nbsp;&nbsp;洛杉矶");
+
+        // let yhc = fsvg.select("g#盐湖城");
+        // yhc.select("text").html("&nbsp;&nbsp;&nbsp;盐湖城");
+
+        // let sh = fsvg.select("g#上海");
+        // sh.append("text").attr("fill", "#000").attr("y", "-20").attr("dy", "0em").html("台北");
+        // let amstd = fsvg.select("g#阿姆斯特丹");
+        // amstd.select("text").attr("y", "-25");
+        // amstd.select("line").attr("y2", "-22");
+        // amstd.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("布鲁塞尔(比利时)");
+
+        // let xg = fsvg.select("g#香港");
+        // xg.select("text").attr("y", "-25");
+        // xg.select("line").attr("y2", "-22");
+        // xg.append("text").attr("fill", "#000").attr("y", "-35").attr("dy", "0em").html("武汉");
+
+        // let xdl = fsvg.select("g#新德里");
+        // xdl.select("line").attr("y2", "-20");
+        // xdl.select("text").attr("y", "-25");
+
+        let y = d3.scaleOrdinal().range(graph.yax[0]);
+        let yScale = y.domain(graph.yax[1]);
+
+        // y轴
+        let yAxis = d3.axisLeft(yScale);
+        yAxis.tickValues();
+        yAxis.tickSize(2, 5);
+        yAxis.tickPadding(5);
+        svg.append('g')
+            .attr('class', 'yAxisis')
+            .attr('transform', `translate(99, 50)`)
+            .call(yAxis);
+
+        // console.log(graph);
+        // Tier1自治域
+        let node = svg.selectAll(".tier1_rects")
+            .data(graph.rects)
+            .enter().append("g")
+            .attr("class", "tier1_rects")
+            .attr("id", function (d) {
+                return "tier1_rects" + d.asn;
+            });
+
+        node.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("stroke-width", "0px")
+            .attr("fill", d => d.color)
+            .attr("id", d => `as${d.asn}`)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height)
+            .on("click", function (d) {
+
+            });
+        // .call(d3.drag()
+        //     .on("start", dragstarted)
+        //     .on("drag", dragged)
+        //     .on("end", dragended));
+
+        //鼠标悬停文字
+        node.append("title")
+            .text(d => `ASN：${d.asn}
+                        AS name：${d.name.split(',')[1]}
+                        country：${d.name.split(',')[2]}
+                        num of customers：${d.scale}`);
+
+        // Tier2矩形
+        let tier2_node = svg.selectAll(".tier2_rects")
+            .data(graph.rect2s)
+            .enter().append("g")
+            .attr("class", "tier2_rects")
+            .attr("id", function (d) {
+                return "tier2_rects" + d.asn;
+            });
+        // console.log(graph.rect2s[0]);
+        tier2_node.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("id", d => `as${d.asn}`)
+            .attr("stroke-width", "0px")
+            .attr("fill", d => d.color)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height)
+            .on("click", function (d) {
+
+            });
+        // .call(d3.drag()
+        //     .on("start", dragstarted)
+        //     .on("drag", dragged)
+        //     .on("end", dragended));
+
+        tier2_node.append("title")
+            .text(d => `ASN：${d.asn}
+                        AS name：${d.name.split(',')[1]}
+                        country：${d.name.split(',')[2]}
+                        nums of customer：${d.scale}`);
+
+        //Tier1和Tier2的位置信息竖条
+        let node2 = svg.append("g").attr("class", "tier1_lgt")
+            .selectAll(".tier1_lgts")
+            .data(graph.lgts)
+            .enter().append("g")
+            .attr("class", "tier1_lgts");
+
+        node2.append("rect")
+            .attr("stroke", d => d.color)
+            .attr("stroke-width", "0px")
+            .attr("fill", d => d.color)
+            .attr("x", d => d.xp)
+            .attr("y", d => d.yp)
+            .attr("width", d => d.width)
+            .attr("height", d => d.height);
+
+        // node2.append("title")
+        //     .text(d => `${d.lgt}`);
+
+        //所有其他自治域的小点
+        // let dots = svg.append("g").attr("class", "leaf_dot")
+        //     .selectAll(".leaf_dots")            
+        //     .data(graph.dots)
+        //     .enter()
+        //     .append("g");
+
+        // dots.append("circle")
+        //     .attr("cx", d => d.xp)
+        //     .attr("cy", d => d.yp)
+        //     .attr("r", 2)
+        //     .attr("id", d => `as${d.other.split("|")[0]}`)
+        //     .attr("fill", d => d.color)
+        //     .on("mouseover", function () {
+        //             d3.select(this).attr("r", 4).attr("fill", "red");
+        //         }
+        //     )
+        //     .on("mouseout", function (d) {
+        //             d3.select(this).attr("r", 2).attr("fill", d => d.color);
+        //         }
+        //     );
+
+        // dots.append("title")
+        //     .text(function (d) {
+        //         let sp = d.other.split("|"); // asn, name, cnt, lgt, path
+        //         return `ASN：${sp[0]}
+        //                 country：${sp[2]}
+        //                 AS name：${sp[1]}
+        //                 longitude：${d.lgt}
+        //                 ASpath：${sp[4]}
+        //                 prefix：${sp[5]}`;
+        //     });
+            
+        //圆圈
+        let circles = svg.append("g").attr("class", "prefix_circle")
+            .selectAll(".prefix_circle")            
+            .data(graph.circles)
+            .enter()
+            .append("g");
+
+        circles.append("circle")
+            .attr("cx", d => d.xp)
+            .attr("cy", d => d.yp)
+            .attr("r", d => d.r)
+            // .attr("id", d => `as${d.other.split("|")[0]}`)
+            .attr("fill", d => d.color)
+    
+    
+            .attr("stroke", "#333")
+            .attr("stroke-width","1px")
+            .attr("stroke-opacity", "0.2");
+            // .on("mouseover", function () {
+            //         d3.select(this).attr("r", 4).attr("fill", "red");
+            //     }
+            // )
+            // .on("mouseout", function (d) {
+            //         d3.select(this).attr("r", 2).attr("fill", d => d.color);
+            //     }
+            // );
+
+        circles.append("title")
+            .text(function (d) {
+                // let sp = d.other.split("|"); // asn, name, cnt, lgt, path
+                return `ASN: ${d.asn}
+                        prefixs: /${d.len}`;
+            });
+
+        // Tier1矩形上的文字
+        let text1 = svg.selectAll(".tier1_texts")
+            .data(graph.rects)
+            .enter().append("g")
+            .attr("class", "tier1_texts")
+            .attr("id", function (d) {
+                return "tier1_texts" + d.asn;
+            });
+        text1.append("text")
+        // .attr("dx", 0)
+        // .attr("dy", ".35em")
+            .attr("x", d => d.xp + d.width / 2)
+            .attr("y", d => d.yp + 4 + d.height / 2)
+            .attr("style", "background-color:white;opacity:1;")
+            .style("text-anchor", "middle")
+            .attr("class", "word")
+            .style("fill", "#000")
+            .style("font-family", "Arial")
+            .style("font-size", d => d.height * 0.7)
+            .text(function (d) {
+                if (d.width < 100) {
+                    return "";
+                } else {
+                    return `${d.asn}`; //,${d.name.split(',')[1].split(' ')[1]},${d.name.split(',')[2]}`;
+                }
+            });
+
+        // Tier2矩形上的文字
+        let text2 = svg.selectAll(".tier2_texts")
+            .data(graph.rect2s)
+            .enter().append("g")
+            .attr("class", "tier2_texts")
+            .attr("id", function (d) {
+                return "tier2_texts" + d.asn;
+            });
+        text2.append("text")
+        // .attr("dx", 0)
+        // .attr("dy", ".35em")
+            .attr("x", d => d.xp + d.width / 2)
+            .attr("y", d => d.yp + 4 + d.height / 2)
+            .attr("style", "background-color:white;opacity:1;")
+            .style("text-anchor", "middle")
+            .attr("class", "word")
+            .style("fill", "#000")
+            .style("font-family", "Arial")
+            .style("font-size", d => d.height * 0.9)
+            .text(function (d) {
+                if (d.width < 40) {
+                    return "";
+                } else {
+                    return d.asn;
+                }
+            });
+
+
+        // 城市定位线
+        let link = svg.selectAll(".link")
+            .data(graph.lines)
+            .enter().append("g")
+            .attr("class", "link");
+        link.append("line")
+            .attr("x1", d => d.xp)
+            .attr("y1", 50)
+            .attr("x2", d => d.xp)
+            .attr("y2", 5000)
+            .attr("style", "background-color:white;opacity:0;")
+            .attr("stroke-dasharray", "2 2")
+            .attr("stroke", "#444")
+            .attr("stroke-width", "1px");
+
+    });
+}
+function clearSvg() {
+    d3.selectAll(".xAxisis").remove();
+    svg.select(".yAxisis").remove();
+
+    let node = svg.selectAll(".tier1_rects");
+    node.remove();
+
+    let tier2_node = svg.selectAll(".tier2_rects");
+    tier2_node.remove();
+
+    let node2 = svg.selectAll(".tier1_lgt");
+    node2.remove();
+
+    let dots = svg.selectAll(".leaf_dot");
+    dots.remove();
+
+    let text1 = svg.selectAll(".tier1_texts");
+    text1.remove();
+
+    let text2 = svg.selectAll(".tier2_texts");
+    text2.remove();
+
+    let link = svg.selectAll(".link");
+    link.remove();
+}
+</script>
+<script>
+    $("#freshBt").click(function (){
+        let jiange = 50, group = 85;
+        ct1 = $("#jiange").val();
+        ct2 = $("#group").val();
+        let int_match = /^[1-9]\d*$/;
+        if (ct1 != "" && !int_match.test(ct1)){
+            alert("must be int");
+            return;
+        }
+        else if (ct2 != "" && !int_match.test(ct2)){
+            alert("must be int");
+            return;
+        }
+        else {
+            if (ct1){
+                jiange = ct1; 
+            }
+            if (ct2){
+                group = ct2;
+            }
+            clearSvg();
+            getjson(jiange, group);
+        }        
+    });
+</script>
+<script>
+    let last = [];
+    let int_match = /^[1-9]\d*$/;
+    let ip_match = /^(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))$/;
+    let country_match = /^[A-Z]{2}$/;
+    
+    function asn_highligter(target, color){
+        for (x of target._groups[0]){
+            // console.log(x);
+            if (x.tagName === 'rect'){
+                let t = svg.append("rect")
+                    .attr("x", x.x.animVal.value - 2)
+                    .attr("y", x.y.animVal.value - 1)
+                    .attr("width", parseFloat(x.width.animVal.value) + 4)
+                    .attr("height", parseFloat(x.height.animVal.value) + 2)
+                    .attr("stroke", color)
+                    // .attr("class", "twink")
+                    .attr("fill", "none")
+                    .attr("stroke-width", "2px");
+                last.push(t);
+            }
+            else if (x.tagName === 'circle'){
+                let t = svg.append("circle")
+                    .attr("cx", x.cx.animVal.value)
+                    .attr("cy", x.cy.animVal.value)
+                    .attr("r", parseFloat(x.r.animVal.value) + 2)
+                    .attr("stroke", color)
+                    .attr("fill", "none")
+                    // .attr("class", "twink")
+                    .attr("stroke-width", "2px");
+                last.push(t);
+            }
+        }
+    }
+    function relation_highligter(provider, customer, peer){
+        console.log(provider, customer, peer);
+        for (x of provider){
+            asn_highligter(d3.selectAll(`#as${x}`), "red");
+        }
+        for (x of customer){
+            asn_highligter(d3.selectAll(`#as${x}`), "green");
+        }
+        for (x of peer){
+            asn_highligter(d3.selectAll(`#as${x}`), "blue");
+        }
+    }
+	let btFlag = 1;
+	$("#lineBt").click(function (){
+		let lines = d3.selectAll("g.link").selectAll("line");
+		if (btFlag === 0){
+			lines.style("opacity", 0);
+			btFlag = 1;
+			$("#lineBt").html("display lines of cities");
+		}
+		else {
+		    lines.style("opacity", 10);
+			btFlag = 0;
+			$("#lineBt").html("hide lines of cities");
+		}
+    });
+
+	
+    $("#searchBt").click(function () {
+        let content = $("#searchIp").val();
+        for (let thing of last){
+            thing.remove();
+        }
+        last = [];
+
+        let int_match = /^[1-9]\d*$/;
+        let ip_match = /^(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))$/;
+
+        if (!content){
+            alert("please input something!");
+        }
+        else if (int_match.test(content)){  //输入的是整数，认为是asn
+            let target = d3.selectAll(`#as${content}`);
+            // console.log(target);
+            if (target._groups[0].length){
+                asn_highligter(target, "black");
+                // console.log(last);           
+            }
+            else{
+                alert("no this AS!");
+            }
+        }
+        else if (ip_match.test(content)){  //输入的是ip地址
+            $.get("search", {
+                ip: content,
+            }).done(function (data) {
+                let search_result = JSON.parse(data);
+                // console.log(search_result);
+                if (search_result && search_result.asn){
+                    let asn = search_result.asn;
+                    // console.log(asn);
+                    let target = d3.selectAll(`#as${asn}`);
+                    // console.log(target);
+                    if (target._groups[0].length){
+                        asn_highligter(target, "black");
+                        alert(`ASN is ${asn}, prefix is ${search_result.prefix}`);
+                    }
+                    else{
+                        alert(`ASN is ${asn}, there isn't the AS in the graph!`);
+                    }
+                }
+                else{
+                    alert("no this AS!");
+                }
+            }).fail(function (xhr, status) {
+                alert("fail!");
+            });
+            
+        }
+        else if (country_match.test(content)){
+            $.get("country", {
+                code: content,
+            }).done(function (data) {
+                let search_result = JSON.parse(data);
+                // console.log(search_result);
+                if (search_result){
+                    for (let asn of search_result){
+                        let target = d3.selectAll(`#as${asn}`);
+                        if (target._groups[0].length){
+                            asn_highligter(target, "black");
+                        }
+                        // else{
+                        //     alert(`自治域为${asn},未在图中查询到该自治域!`);
+                        // }
+                    }                   
+                }
+                else{
+                    alert("no this AS!");
+                }
+            }).fail(function (xhr, status) {
+                alert("fail!");
+            });
+        }
+        else{
+            alert("wrong input format");
+        }       
+
+    });
+
+    $("#relationBt").click(function () {
+        let content = $("#relation").val();
+        for (let thing of last){
+            thing.remove();
+        }
+        last = [];        
+
+        if (!content){
+            alert("please input something!");
+        }
+        else if (int_match.test(content)){  //输入的是整数，认为是asn            
+            $.get("relation", {
+                asn: content,
+            }).done(function (data) {
+                // alert(data);
+                let search_result = JSON.parse(data);
+                if (search_result){ //result 不是 null                    
+                    let providers = search_result[1];
+                    let peers = search_result[0];
+                    let customers = search_result[2];
+                    asn_highligter(d3.selectAll(`#as${content}`), "black");
+                    relation_highligter(providers, customers, peers);
+                }
+                else{
+                    alert("no this AS!");
+                }
+            }).fail(function (xhr, status) {
+                alert("fail!");
+            });            
+        }
+        else{
+            alert("must be int");
+        }       
+
+    });
+</script>
+</html>
