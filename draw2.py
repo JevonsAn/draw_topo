@@ -90,13 +90,13 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
         #     lgtss.append({"xp": calc_posi(l, x_list, x_width), "yp": a["yp"], "width": 2,
         #                   "color": dark_color, "height": a["height"] - 3, "lgt": l})
 
-        prefixs = sorted(asn["prefixs"], key=lambda x: float(x[0]))
+        prefixs = sorted(asn["prefixs"], key=lambda x: (float(x[1]), float(x[0])), reverse=True)
         # prefixs.sort(key=lambda x: x[0])
         for c in prefixs:
             prefix = " "
             leng = math.log2(float(c[1]))
             leng = leng if leng <= 24 else 24
-            r = (high / 2 - 4) / 26 * leng + 2
+            r = (high / 2 - 1) / 24 * leng + 2
             try:
                 pl = calc_posi(float(c[0]), x_list, x_width)
             except Exception as e:
@@ -105,9 +105,9 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
 
             circles.append({"xp": "%.1f" % pl, "yp": thigh - high / 2, "r": r, "asn": int(asn["asn"]), "len": str(24 - leng)[:4], "color": dark_color, "prefix": prefix})
 
-        # for l in asn_leafs[a["asn"]]:
-        #     pl = calc_posi(l[0], x_list, x_width)
-        #     dots.append({"xp": "%.1f" % pl, "yp": thigh - 1.5, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
+        for l in asn_leafs[a["asn"]]:
+            pl = calc_posi(l[0], x_list, x_width)
+            dots.append({"xp": "%.1f" % pl, "yp": thigh - 1.5, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
 
     # # print(rects, dots)
     # thigh += 30
@@ -131,12 +131,12 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
             b["width"] = calc_posi(asn["rect"][-1], x_list, x_width) - b["xp"]
             tier2_rects.append(b)
 
-            prefixs = sorted(asn["prefixs"], key=lambda x: float(x[0]))
+            prefixs = sorted(asn["prefixs"], key=lambda x: (float(x[1]), float(x[0])), reverse=True)
             for c in prefixs:
                 prefix = " "
                 leng = math.log2(float(c[1]))
                 leng = leng if leng <= 24 else 24
-                r = (high / 2 - 4) / 26 * leng + 2
+                r = (high / 2 - 1) / 24 * leng + 2
                 try:
                     pl = calc_posi(float(c[0]), x_list, x_width)
                 except Exception as e:
@@ -150,10 +150,10 @@ def rect_posi(tier1_asns, tier2_asns, asn_leafs, x_list, x_width):
             # for l in lgts:
             #     lgtss.append({"xp": calc_posi(l, x_list, x_width), "yp": a["yp"], "width": 2,
             #                   "color": dark_color, "height": a["height"] - 3, "lgt": l})
-            # for l in asn["dots"]:
-            #     pl = calc_posi(l[0], x_list, x_width)
-            #     dots.append(
-            #         {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
+            for l in asn["dots"]:
+                pl = calc_posi(l[0], x_list, x_width)
+                dots.append(
+                    {"xp": "%.1f" % pl, "yp": thigh + 12, "color": dark_color, "other": l[1], "lgt": "%.1f" % l[0]})
 
             if asn["max"]:
                 for x in asn["little"]:  # 画同自治域的小矩形

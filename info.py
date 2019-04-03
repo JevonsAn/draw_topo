@@ -439,11 +439,11 @@ def get_info(jiange=50, group=85):   # jiange = 50
         for line in f.readlines():
             sp = line.strip().split("|")
             As = {}
-            if len(sp) == 7:
-                As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp[:-1]
-                As["posis"] = eval(As["posis"])
+            if len(sp) == 5:
+                As["asn"], As["name"], As["country"], As["scale"], As["dms"] = sp
+                As["posis"] = sorted([float(x[0]) for x in asn_prefixs.get(int(As["asn"]), [])])
+                As["prefixs"] = asn_prefixs.get(int(As["asn"]), [])
                 As["rects"] = calc_width(As["posis"], jiange)
-                As["prefixs"] = asn_prefixs[int(As["asn"])]
                 if As["country"] not in country_color:
                     As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
@@ -464,10 +464,11 @@ def get_info(jiange=50, group=85):   # jiange = 50
     with open("txt/tier2_info.txt") as f:
         for line in f.readlines():
             sp = line.strip().split("|")
-            if len(sp) == 7:
+            if len(sp) == 5:
                 As = {}
-                As["asn"], As["name"], As["country"], As["scale"], As["posis"], As["dms"] = sp[:-1]
-                As["posis"] = eval(As["posis"])
+                As["asn"], As["name"], As["country"], As["scale"], As["dms"] = sp
+                As["posis"] = sorted([float(x[0]) for x in asn_prefixs.get(int(As["asn"]), [])])
+                As["prefixs"] = asn_prefixs.get(int(As["asn"]), [])
                 if As["country"] not in country_color:
                     As["color"], As["dark_color"] = rand_color2(other_color)
                 else:
@@ -476,13 +477,14 @@ def get_info(jiange=50, group=85):   # jiange = 50
                     country_asn[As["country"]].append(As["asn"])
                 else:
                     country_asn[As["country"]] = [As["asn"]]
-                rects = calc_width22(As["posis"], jiange, asn_leafs.get(int(As["asn"]), []), asn_prefixs.get(int(As["asn"]), []))  # 在这里把矩形分成小矩形 As["posis"], jiange
-                # print(rects)
-                for rx in rects:
-                    b = {x: y for x, y in As.items() if x != "posis"}
-                    b.update(rx)
-                    tier2_asns.append(b)
-                calc_posi([(x["rect"][0], x["rect"][-1]) for x in rects])
+                if As["posis"]:
+                    rects = calc_width22(As["posis"], jiange, asn_leafs.get(int(As["asn"]), []), asn_prefixs.get(int(As["asn"]), []))  # 在这里把矩形分成小矩形 As["posis"], jiange
+                    # print(rects)
+                    for rx in rects:
+                        b = {x: y for x, y in As.items() if x != "posis"}
+                        b.update(rx)
+                        tier2_asns.append(b)
+                    calc_posi([(x["rect"][0], x["rect"][-1]) for x in rects])
 
     tier2_asns = Interval_Merge(tier2_asns, group)
     return tier1_asns, tier2_asns, asn_leafs, x_scale, country_asn
